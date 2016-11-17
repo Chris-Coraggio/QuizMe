@@ -1,10 +1,11 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Chris on 11/9/2016.
  */
-public class Question {
+public class Question implements Serializable {
 
     private String question;
     private String answer;
@@ -13,10 +14,27 @@ public class Question {
 
     public Question(String question, String answer, int difficulty, String category){
 
-        this.question = question;
-        this.answer = answer;
+        this.question = properCase(question);
+        this.answer = answer.toUpperCase();
         this.difficulty = difficulty;
-        this.category = category;
+        this.category = properCase(category);
+    }
+
+    public String properCase(String str){
+        char [] properCased = str.trim().toLowerCase().toCharArray();
+        boolean capitalizeNext = false;
+        properCased[0] = Character.toUpperCase(properCased[0]);
+        for(int i = 1; i < properCased.length; i++){
+            if(capitalizeNext){
+                properCased[i] = Character.toUpperCase(properCased[i]);
+            }
+            if(properCased[i] == ' ' || properCased[i] == '-'){
+                capitalizeNext = true;
+            }else{
+                capitalizeNext = false;
+            }
+        }
+        return new String(properCased);
     }
 
     public String getQuestion(){
