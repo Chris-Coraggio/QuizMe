@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
  */
 public class Server {
 
+    static final int PORT = 50000;
     static ServerSocket socket = null;
 
     public static void main(String [] args){
@@ -23,7 +24,7 @@ public class Server {
         }
         System.out.println(ipAddress);
         try {
-            socket = new ServerSocket(50000);
+            socket = new ServerSocket(PORT);
         }catch(IOException err){
             System.out.println("Failed to create server socket");
         }
@@ -42,12 +43,12 @@ public class Server {
         private PrintWriter out;
         private BufferedReader in;
 
-        public ServerWorker(Socket client){
+        public ServerWorker(Socket client) {
             this.client = client;
-            try{
+            try {
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            }catch(IOException e){
+            } catch (IOException e) {
                 System.out.println("Failed to set up client I/O");
             }
         }
