@@ -1,13 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:weightSum="1">
 
-    <EditText
-        android:layout_width="match_parent"
+    <TextView
+        android:text="@string/games_label"
+        android:layout_width="402dp"
         android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:text="Congrats! You made it to the next page!w"
-        android:ems="10"
-        android:id="@+id/editText" />
+        android:id="@+id/games_label"
+        android:layout_weight="0.05"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:textAlignment="center"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:layout_width="400dp"
+        android:layout_height="120dp"
+        android:id="@+id/games_list"
+        android:layout_weight="0.79"
+        android:background="@color/primary_light" />
+
+    <RelativeLayout
+        android:layout_width="400dp"
+        android:layout_height="120dp"
+        android:layout_weight="0.19">
+
+        <Button
+            android:text="Join Game"
+            android:enabled="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/new_game_button"
+            android:layout_toEndOf="@+id/new_game_button"
+            android:layout_marginStart="30dp"
+            android:id="@+id/join_button" />
+
+        <Button
+            android:text="Create New Game"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:id="@+id/new_game_button"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="34dp" />
+    </RelativeLayout>
+
 </LinearLayout>
