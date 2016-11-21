@@ -2,4 +2,5 @@
     <string name="app_name">QuizMe</string>
     <string name="welcome_message">Welcome to QuizMe!</string>
     <string name="games_label">Available Games</string>
+    <string name="category_header">Select a category:</string>
 </resources>

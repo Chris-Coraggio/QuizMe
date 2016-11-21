@@ -6,18 +6,19 @@ import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ViewFlipper;
 import android.widget.ViewSwitcher;
 
 public class MainActivity extends AppCompatActivity {
 
     private final ClientController ctrl = new ClientController();
-    private ViewSwitcher switcher;
+    private ViewFlipper flipper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        switcher =  (ViewSwitcher) findViewById(R.id.ViewSwitcher);
+        flipper =  (ViewFlipper) findViewById(R.id.ViewFlipper);
 
         Button login = (Button) findViewById(R.id.login_button);
         login.setOnClickListener(new View.OnClickListener(){
@@ -28,9 +29,9 @@ public class MainActivity extends AppCompatActivity {
                 ctrl.login(username, password);
 
                 new AnimationUtils();
-                switcher.setAnimation(AnimationUtils.makeInAnimation
+                flipper.setAnimation(AnimationUtils.makeInAnimation
                         (getBaseContext(), true));
-                switcher.showNext();
+                flipper.showNext();
             }
         });
 
