@@ -14,12 +14,15 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Display1"
         android:layout_marginTop="10dp" />
 
-    <TextView
-        android:layout_width="400dp"
-        android:layout_height="120dp"
-        android:id="@+id/games_list"
-        android:layout_weight="0.79"
-        android:background="@color/primary_light" />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="322dp"
+        android:layout_weight="0.92"
+        android:background="@color/primary_light"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp"></LinearLayout>
 
     <RelativeLayout
         android:layout_width="400dp"

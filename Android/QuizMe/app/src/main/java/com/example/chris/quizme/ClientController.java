@@ -1,11 +1,7 @@
 package com.example.chris.quizme;
-
-import android.widget.EditText;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
@@ -14,30 +10,69 @@ import java.net.Socket;
 
 public class ClientController {
 
-    final String IP = "localhost";
     final int PORT = 50000;
 
     Socket socket;
-    PrintWriter out;
-    BufferedReader in;
+    ObjectOutputStream out;
+    ObjectInputStream in;
 
-    public ClientController(){
-       // try {
-            //socket = new Socket(IP, PORT);
-            //out = new PrintWriter(socket.getOutputStream(), true);
-            //in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-       // }catch(IOException e){
-         //   System.out.println(String.format(
-         //           "Failed to connect to server. Ensure it is running on %s:%s and try again",
-         //           IP, PORT));
-      //  }
+    ClientModel model = new ClientModel();
+
+    public ClientController() {}
+
+    public boolean connectToServer(String ipAddress){ //returns whether or not connection was successful
+       try {
+            socket = new Socket(ipAddress, PORT);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
+           return true;
+        }catch(IOException e){
+            System.out.println(String.format(
+                    "Failed to connect to server. Ensure it is running on %s:%s and try again",
+                    ipAddress, PORT));
+           return false;
+        }
     }
 
-    public void login(String username, String password){ //returns true if successful
-        //out.println(new String[]{"LOGIN", username, password});
+    public boolean login(String username, String password) throws IOException, ClassNotFoundException{ //returns true if successful
+        out.writeObject(new String[]{"LOGIN", username, password});
+        out.flush();
+
+        String[] response = (String [])in.readObject();
+        MainActivity.showToast(response[1]);
+        if(response[0].equals("LOGINSUCCESS")){
+            model.setUsername(response[1]);
+            return true;
+        }else{
+            return false;
+        }
     }
 
-    public void register(String username, String password){
-        //out.println(new String[]{"REGISTER", username, password});
+    public boolean register(String username, String password) throws IOException, ClassNotFoundException{ //returns true if successful
+        out.writeObject(new String[]{"REGISTER", username, password});
+        out.flush();
+
+        String[] response = (String [])in.readObject();
+        MainActivity.showToast(response[1]);
+        if(response[0].equals("REGISTERSUCCESS")){
+            return true;
+        }
+        else return false;
+    }
+
+    public void createNewGame() throws IOException{
+        out.writeObject(new String[]{"NEWGAME", model.getUsername()});
+    }
+
+    public void joinGame(String hostUsername){
+
+    }
+
+    public void sleep(long millis){
+        try{
+            Thread.sleep(millis);
+        }catch (InterruptedException e){
+            System.out.println("Interrupted!");
+        }
     }
 }

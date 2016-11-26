@@ -14,6 +14,39 @@
     android:layout_height="fill_parent"
     android:layout_margin="6dp" >
 
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical" android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Enter IP Address:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/textView"
+                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                android:layout_marginTop="20dp"
+                android:layout_marginLeft="10dp" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/ip_address_field"
+                android:hint="e.g. 123.456.789.123"
+                android:layout_marginTop="100dp"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp" />
+
+            <Button
+                android:text="Connect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/connect_button"
+                android:layout_marginTop="150dp"
+                android:layout_marginLeft="50dp"
+                android:layout_marginRight="50dp" />
+        </LinearLayout>
 
     <LinearLayout android:id="@+id/first_page"
         android:layout_width="wrap_content"
@@ -112,14 +145,15 @@
             android:textAlignment="center"
             android:layout_marginTop="10dp" />
 
-        <TextView
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:id="@+id/games_list"
-            android:layout_weight="0.79"
-            android:background="@color/primary_light" />
+            android:layout_height="322dp"
+            android:layout_weight="0.92"
+            android:background="@color/primary_light"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginLeft="30dp"></LinearLayout>
 
         <RelativeLayout
             android:layout_width="400dp"
