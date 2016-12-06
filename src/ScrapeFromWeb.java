@@ -10,7 +10,6 @@ public class ScrapeFromWeb {
     private String resultsJSONString;                               //resulting page of a scrape
     private final String address = "http://jservice.io/api/random"; //the web site url
     private JSONObject json;                                        //the object to store the results
-    private String [] fieldsToGet = {"question", "answer", "value"};
 
     public Question getRandomQuestion() throws IOException, JSONException {
         try {
