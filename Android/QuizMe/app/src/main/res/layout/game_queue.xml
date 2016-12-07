@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:weightSum="1">
 
-    <TextView
+    <ListView
         android:text="@string/games_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,8 +17,7 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="322dp"
-        android:layout_weight="0.92"
+        android:layout_height="256dp"
         android:background="@color/primary_light"
         android:layout_marginTop="20dp"
         android:layout_marginRight="30dp"
@@ -43,10 +42,19 @@
             android:text="Create New Game"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="38dp"
             android:id="@+id/new_game_button"
-            android:layout_centerVertical="true"
+            android:layout_marginStart="42dp"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true" />
+
+        <Button
+            android:text="Refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/refresh_button"
+            android:layout_alignParentTop="true"
+            android:layout_alignEnd="@+id/join_button"
+            android:layout_marginEnd="92dp" />
     </RelativeLayout>
 
 </LinearLayout>

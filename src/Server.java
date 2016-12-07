@@ -20,11 +20,11 @@ public class Server {
 
     static final int PORT = 50000;
     static ServerSocket socket = null;
-    private static HashMap<String, User> usersHashmap; //keys: username values: Users
-    private static HashMap<String, Pair<byte[], String>> database; //keys: username, values: salt and hashedPassword
+    private static HashMap<String, User> usersHashmap = new HashMap<String, User>(); //keys: username values: Users
+    private static HashMap<String, UserData> database; //keys: username, values: UserData instances
     private static String pathToDatafile = "data.txt";
     private static int numUsers = 0;
-    private static HashMap<Integer, Game> games = new HashMap<Integer, Game>(26 * 26); //hash based on first two letters
+    public static HashMap<String, Game> games = new HashMap<String, Game>(); //key: game key value: Game instance //TODO make private
 
     public static void main(String[] args) {
         initDatabase();
@@ -56,11 +56,9 @@ public class Server {
                 try {
                     while (it.hasNext()) {
                         User temp = it.next().getValue();
-                        try {
-                            System.out.println("data waiting");
-                            processInput(temp.readObject(), temp);
-                        } catch (Exception e) {
-                            System.out.println("there may be a problem here");
+                        Object message = temp.readObject();
+                        if(message != null){
+                            processInput((String[])message, temp);
                         }
                     }
                 }catch(Exception e){}
@@ -76,9 +74,9 @@ public class Server {
             } else {
                 try {
                     ObjectInputStream readFromDatabase = new ObjectInputStream(new FileInputStream(pathToDatafile));
-                    database = (HashMap<String, Pair<byte[], String>>) readFromDatabase.readObject();
+                    database = (HashMap<String, UserData>) readFromDatabase.readObject();
                 } catch (EOFException ex) {
-                    database = new HashMap<String, Pair<byte[], String>>();
+                    database = new HashMap<String, UserData>();
                 }
             }
         } catch (Exception e) {
@@ -104,8 +102,11 @@ public class Server {
     }
 
     public static boolean updateHashmap(String username, User user) { //returns true if success
+        System.out.println("UPDATING HASHMAP: " + username);
         if (!usersHashmap.containsKey(username)) {
             if(removeByUser(user)) {
+                user.updateUserData(database.get(username));
+                user.setUsername(username);
                 usersHashmap.put(username, user);
             }else{
                 System.out.println("Failed to remove user");
@@ -116,7 +117,7 @@ public class Server {
 
     public static boolean removeByUser(User user){
         Iterator<Map.Entry<String, User>> it = usersHashmap.entrySet().iterator();
-        for(int i=0;i<usersHashmap.size();i++){
+        for(int i=0; i<usersHashmap.size(); i++){
             Map.Entry<String,User> temp = it.next();
             if(temp.getValue().equals(user)){
                 usersHashmap.remove(temp.getKey());
@@ -129,9 +130,8 @@ public class Server {
     public static boolean addUserToDatabase(String username, String password) { //returns true if success
         if (!database.containsKey(username)) {
             byte[] salt = generateSalt();
-            database.put(username, new Pair(salt, hashPassword(password, salt)));
+            database.put(username, new UserData(salt, hashPassword(password, salt), 0));
             return true;
-            //TODO: write in new user
         } else {
             return false;
         }
@@ -145,11 +145,6 @@ public class Server {
             key += choices.charAt((int)(Math.random() * 26));
         }
         return key;
-    }
-
-    public static int hashGameKey(String gameKey){
-        char[] letters = gameKey.toCharArray();
-        return 26 * ((int)letters[0] - 97) + ((int)letters[1] - 97);
     }
 
     public static String hashPassword(String origPassword, byte[] salt){
@@ -182,23 +177,60 @@ public class Server {
         return sb.toString();
     }
 
-    private static String[] processInput(String[] clientMessage, User user){
+    public static Game findGameByUser(User user){
+        Iterator<Map.Entry<String, Game>> it = games.entrySet().iterator();
+        for(int i=0; i < games.size(); i++){
+            Game temp = it.next().getValue();
+            if(temp.findParticipant(user)){
+                return temp;
+            }
+        }
+        return null;
+    }
+
+    private static void processInput(String[] clientMessage, User user){
         switch (clientMessage[0]) {
             case "REGISTER":
                 sendToClient(register(clientMessage[1], clientMessage[2]), user);
+                break;
             case "LOGIN":
                 sendToClient(login(clientMessage[1], clientMessage[2], user), user);
+                break;
+            case("STARTNEWGAME"):
+                sendToClient(startNewGame(user), user);
+                break;
+            case("GETAVAILABLEGAMES"):
+                sendToClient(new HashMap[]{compileGames()}, user);
+                break;
+            case("JOINGAME"):
+                sendToClient(joinGame(user, clientMessage[1]), user); //gameKey
+                break;
+            case("LAUNCHGAME"):
+                String[] launchGameResponse = launchGame(user, clientMessage[1]);
+                if(launchGameResponse[0].equals("LAUNCHGAMEFAILURE")){
+                    sendToClient(launchGameResponse, user);
+                }
+                //sends success message to all clients in game at the start of the game
+                break;
+            case("GETNEXTQUESTION"):
+                sendToClient(new Object[]{"NEXTQUESTION", findGameByUser(user).getNextQuestion()}, user);
+                break;
+            case("SCORES"):
+                user.updateScore(Integer.parseInt(clientMessage[1]));
+                break;
             default:
                 System.out.println("Message sent with invalid first keyword");
-                return null;
         }
     }
 
 
-    public static void sendToClient(String [] message, User client){
+    public static void sendToClient(Object [] message, User client){
         try {
             client.writeObject(message);
-            System.out.println(String.format("Sent to %s: %s", client.getUsername(), String.join(" ", message)));
+            if(message instanceof String[]){
+                System.out.println(String.format(
+                        "Sent to %s: %s", client.getUsername(), String.join(" ", (String [])message)));
+            }
         }catch(IOException e){
             System.out.println("Error writing to client.");
         }
@@ -219,7 +251,7 @@ public class Server {
     public static String[] login(String username, String password, User user){
 
         if(database.containsKey(username) &&
-                hashPassword(password, database.get(username).getKey()).equals(database.get(username).getValue())){
+                hashPassword(password, database.get(username).getSalt()).equals(database.get(username).getHashedPassword())){
             updateHashmap(username, user);
             return(new String[]{"LOGINSUCCESS", "Logged in as " + username});
         }else if(usersHashmap.containsKey(username)) {
@@ -231,14 +263,23 @@ public class Server {
 
     public static String[] startNewGame(User user){
         try {
-            Game newGame = new Game(games.size());
-            newGame.addParticipant(user);
             String newGameKey = getRandomGameKey();
-            games.put(hashGameKey(newGameKey), newGame);
-            return new String[]{"NEWGAMESUCCESS", "Created new game!", newGame.getGameNumber()};
+            Game newGame = new Game(newGameKey);
+            newGame.addParticipant(user);
+            games.put(newGameKey, newGame);
+            return new String[]{"NEWGAMESUCCESS", "Created new game!", newGame.getGameKey()};
         }catch(Exception e){
+            e.printStackTrace();
             return new String[]{"NEWGAMEFAILURE", "Failed to create new game."};
         }
+    }
+
+    public static HashMap<String, String> compileGames(){ //keys: leader usernames values: gameKeys
+        HashMap<String, String> leadersAndKeys = new HashMap<String, String>();
+        for(Game g: games.values()){
+            leadersAndKeys.put(g.getLeader().getUsername(), g.getGameKey());
+        }
+        return leadersAndKeys;
     }
 
     public static String[] joinGame(User user, String gameKey){
@@ -250,4 +291,15 @@ public class Server {
             return(new String[]{"JOINGAMEFAILURE", String.format("Failed to join %s's game", gameLeader)});
         }
     }
+
+    public static String[] launchGame(User user, String gameKey){
+
+        if(games.get(gameKey).getLeader().getUsername().equals(user.getUsername())){
+            games.get(gameKey).start();
+            return new String[]{"LAUNCHGAMESUCCESS"};
+        }else{
+            return new String[]{"LAUNCHGAMEFAILURE", "Failed to launch game. Please try again."};
+        }
+    }
+
 }

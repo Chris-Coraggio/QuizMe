@@ -127,60 +127,65 @@
         </RelativeLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/wait_for_game_start"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:orientation="vertical" android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:weightSum="1">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:orientation="vertical" android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="1">
 
-        <TextView
-            android:text="@string/games_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/games_label"
-            android:layout_weight="0.05"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-            android:textAlignment="center"
-            android:layout_marginTop="10dp" />
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="322dp"
-            android:layout_weight="0.92"
-            android:background="@color/primary_light"
-            android:layout_marginTop="20dp"
-            android:layout_marginRight="30dp"
-            android:layout_marginLeft="30dp"></LinearLayout>
-
-        <RelativeLayout
-            android:layout_width="400dp"
-            android:layout_height="120dp"
-            android:layout_weight="0.19">
-
-            <Button
-                android:text="Join Game"
-                android:enabled="false"
-                android:layout_width="wrap_content"
+            <ListView
+                android:text="@string/games_label"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@+id/new_game_button"
-                android:layout_toEndOf="@+id/new_game_button"
-                android:layout_marginStart="30dp"
-                android:id="@+id/join_button" />
+                android:id="@+id/games_label"
+                android:layout_weight="0.05"
+                android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                android:layout_marginTop="10dp" />
 
-            <Button
-                android:text="Create New Game"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="38dp"
-                android:id="@+id/new_game_button"
-                android:layout_centerVertical="true"
-                android:layout_alignParentStart="true" />
-        </RelativeLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="256dp"
+                android:background="@color/primary_light"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginLeft="30dp"></LinearLayout>
 
-    </LinearLayout>
+            <RelativeLayout
+                android:layout_width="400dp"
+                android:layout_height="120dp"
+                android:layout_weight="0.19">
+
+                <Button
+                    android:text="Join Game"
+                    android:enabled="false"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/new_game_button"
+                    android:layout_toEndOf="@+id/new_game_button"
+                    android:layout_marginStart="30dp"
+                    android:id="@+id/join_button" />
+
+                <Button
+                    android:text="Create New Game"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/new_game_button"
+                    android:layout_marginStart="42dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentStart="true" />
+
+                <Button
+                    android:text="Refresh"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/refresh_button"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignEnd="@+id/join_button"
+                    android:layout_marginEnd="92dp" />
+            </RelativeLayout>
+
+        </LinearLayout>
 
     <LinearLayout
         android:id="@+id/category_selector"

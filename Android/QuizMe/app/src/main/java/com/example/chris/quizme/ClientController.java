@@ -1,8 +1,15 @@
 package com.example.chris.quizme;
+import android.text.TextUtils;
+import android.util.Pair;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by Chris on 11/17/2016.
@@ -34,38 +41,67 @@ public class ClientController {
         }
     }
 
-    public boolean login(String username, String password) throws IOException, ClassNotFoundException{ //returns true if successful
-        out.writeObject(new String[]{"LOGIN", username, password});
-        out.flush();
+    public boolean login(String username, String password){ //returns true if successful
+        writeToOutstream(new String[]{"LOGIN", username, password});
+        return validateResponse("LOGINSUCCESS");
+    }
 
-        String[] response = (String [])in.readObject();
-        MainActivity.showToast(response[1]);
-        if(response[0].equals("LOGINSUCCESS")){
-            model.setUsername(response[1]);
-            return true;
-        }else{
+    public boolean register(String username, String password){ //returns true if successful
+        writeToOutstream(new String[]{"REGISTER", username, password});
+        return validateResponse("REGISTERSUCCESS");
+    }
+
+    public List<String> getAvailableGames(){
+        writeToOutstream(new String[]{"GETAVAILABLEGAMES"});
+        try {
+            return Arrays.asList((String[])in.readObject());
+        }catch(Exception e){
+            return null;
+        }
+    }
+
+    public boolean createNewGame(){
+        writeToOutstream(new String[]{"STARTNEWGAME"});
+        return validateResponse("NEWGAMESUCCESS");
+    }
+
+    public HashMap<String, String> refreshGamesInList(){
+        try {
+            writeToOutstream(new String[]{"GETAVAILABLEGAMES"});
+            return (HashMap<String, String>) in.readObject();
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean joinGame(String gameKey){
+        writeToOutstream(new String[]{"JOINGAME"});
+        return validateResponse("JOINGAMESUCCESS");
+    }
+
+    public boolean validateResponse(String successMessage){
+        try {
+            String[] response = (String[]) in.readObject();
+            MainActivity.showToast(response[1]);
+            if (response[0].equals(successMessage)) {
+                return true;
+            } else return false;
+        }catch(Exception e){
             return false;
         }
     }
 
-    public boolean register(String username, String password) throws IOException, ClassNotFoundException{ //returns true if successful
-        out.writeObject(new String[]{"REGISTER", username, password});
-        out.flush();
-
-        String[] response = (String [])in.readObject();
-        MainActivity.showToast(response[1]);
-        if(response[0].equals("REGISTERSUCCESS")){
-            return true;
+    public void writeToOutstream(Object[] message){
+        try {
+            if(message instanceof String[]){
+                System.out.println(String.format("Sent to server: %s", TextUtils.join(" ", message)));
+            }
+            out.writeObject(message);
+            out.flush();
+        }catch(IOException e){
+            System.out.println("Error writing to outstream");
         }
-        else return false;
-    }
-
-    public void createNewGame() throws IOException{
-        out.writeObject(new String[]{"NEWGAME", model.getUsername()});
-    }
-
-    public void joinGame(String hostUsername){
-
     }
 
     public void sleep(long millis){
@@ -74,5 +110,9 @@ public class ClientController {
         }catch (InterruptedException e){
             System.out.println("Interrupted!");
         }
+    }
+
+    public String getUsername(){
+        return model.getUsername();
     }
 }

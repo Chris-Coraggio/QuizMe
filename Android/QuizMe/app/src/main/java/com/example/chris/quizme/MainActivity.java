@@ -4,12 +4,20 @@ import android.content.Context;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                         flipper.showNext();
                     }
                 }catch (Exception e){
-                    showToast("Error occured while logging in. Please try again");
+                    showToast("Error occurred while logging in. Please try again");
                 }
             }
         });
@@ -76,12 +84,26 @@ public class MainActivity extends AppCompatActivity {
                 }
         }});
 
+        final ListView gameList = (ListView) findViewById(R.id.games_label);
+
+        Button refresh = (Button) findViewById(R.id.refresh_button);
+        refresh.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
+                //do this when create new game button is clicked
+                HashMap<String, String> leadersAndKeys = ctrl.refreshGamesInList();
+                gameList.setAdapter(new ArrayAdapter<String>(
+                        context,
+                        android.R.layout.simple_list_item_1,
+                        (String[])leadersAndKeys.keySet().toArray())
+                );
+            }
+        });
+
         Button createGame = (Button) findViewById(R.id.new_game_button);
         createGame.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 //do this when create new game button is clicked
-                showToast("testing");
-                //ctrl.createNewGame();
+                ctrl.createNewGame();
             }
         });
 
