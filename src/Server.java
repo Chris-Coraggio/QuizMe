@@ -24,7 +24,11 @@ public class Server {
     private static HashMap<String, UserData> database; //keys: username, values: UserData instances
     private static String pathToDatafile = "data.txt";
     private static int numUsers = 0;
-    public static HashMap<String, Game> games = new HashMap<String, Game>(); //key: game key value: Game instance //TODO make private
+    private static HashMap<String, Game> games = new HashMap<String, Game>(); //key: game key value: Game instance //TODO make private
+
+    public static HashMap<String, Game> getGames(){
+        return games;
+    }
 
     public static void main(String[] args) {
         initDatabase();
@@ -43,27 +47,6 @@ public class Server {
             }
         };
         clientListen.start();
-
-        while (true) {
-            try{
-                Thread.sleep(10);   //not sure why it didn't work without this
-            }catch(Exception e){
-                System.out.println("Main server thread interrupted");
-                e.printStackTrace();    //major problem
-            }
-            if(usersHashmap.size()>0) {
-                Iterator<Map.Entry<String, User>> it = usersHashmap.entrySet().iterator();
-                try {
-                    while (it.hasNext()) {
-                        User temp = it.next().getValue();
-                        Object message = temp.readObject();
-                        if(message != null){
-                            processInput((String[])message, temp);
-                        }
-                    }
-                }catch(Exception e){}
-            }
-        }
     }
 
     public static void initDatabase() {
@@ -188,13 +171,13 @@ public class Server {
         return null;
     }
 
-    private static void processInput(String[] clientMessage, User user){
-        switch (clientMessage[0]) {
+    public static void processInput(Object[] clientMessage, User user){
+        switch ((String)clientMessage[0]) {
             case "REGISTER":
-                sendToClient(register(clientMessage[1], clientMessage[2]), user);
+                sendToClient(register((String)clientMessage[1], (String)clientMessage[2]), user);
                 break;
             case "LOGIN":
-                sendToClient(login(clientMessage[1], clientMessage[2], user), user);
+                sendToClient(login((String)clientMessage[1], (String)clientMessage[2], user), user);
                 break;
             case("STARTNEWGAME"):
                 sendToClient(startNewGame(user), user);
@@ -203,10 +186,10 @@ public class Server {
                 sendToClient(new HashMap[]{compileGames()}, user);
                 break;
             case("JOINGAME"):
-                sendToClient(joinGame(user, clientMessage[1]), user); //gameKey
+                sendToClient(joinGame(user, (String)clientMessage[1]), user); //gameKey
                 break;
             case("LAUNCHGAME"):
-                String[] launchGameResponse = launchGame(user, clientMessage[1]);
+                String[] launchGameResponse = launchGame(user, (String)clientMessage[1]);
                 if(launchGameResponse[0].equals("LAUNCHGAMEFAILURE")){
                     sendToClient(launchGameResponse, user);
                 }
@@ -216,7 +199,7 @@ public class Server {
                 sendToClient(new Object[]{"NEXTQUESTION", findGameByUser(user).getNextQuestion()}, user);
                 break;
             case("SCORES"):
-                user.updateScore(Integer.parseInt(clientMessage[1]));
+                user.updateScore((int)clientMessage[1]);
                 break;
             default:
                 System.out.println("Message sent with invalid first keyword");
@@ -284,11 +267,11 @@ public class Server {
 
     public static String[] joinGame(User user, String gameKey){
         User gameLeader = games.get(gameKey).getLeader();
-        if(gameLeader != null && gameLeader.equals(user)){
+        if(gameLeader != null && !gameLeader.equals(user)){
             games.get(gameKey).addParticipant(usersHashmap.get(user.getUsername()));
-            return(new String[]{"JOINGAMESUCCESS", String.format("Joined %s's game", gameLeader)});
+            return(new String[]{"JOINGAMESUCCESS", String.format("Joined %s's game", gameLeader.getUsername())});
         }else{
-            return(new String[]{"JOINGAMEFAILURE", String.format("Failed to join %s's game", gameLeader)});
+            return(new String[]{"JOINGAMEFAILURE", String.format("Failed to join %s's game", gameLeader.getUsername())});
         }
     }
 

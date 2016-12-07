@@ -8,9 +8,9 @@ public class User {
 
     private String username;
     private UserData userData;
-    private Socket client;
+    public Socket client;
     public ObjectOutputStream out;
-    private ObjectInputStream in;
+    public ObjectInputStream in;
     private int score;
 
     public User(Socket client){
@@ -21,14 +21,7 @@ public class User {
         } catch (Exception e) {
             System.out.println("Failed to set up client I/O");
         }
-    }
-
-    public Object readObject() throws IOException, ClassNotFoundException{
-        if(this.in.available() > 0){
-            return this.in.readObject();
-        }else{
-            return null;
-        }
+        new ListenForObject(this).start();
     }
 
     public void writeObject(Object object) throws IOException{
@@ -72,4 +65,23 @@ public class User {
         }
     }
 
+}
+
+class ListenForObject extends Thread{
+    public User user;
+
+    public ListenForObject(User u){
+        this.user = u;
+    }
+
+    public void run(){
+        while(true) {
+            try {
+                Object[] message = (Object[]) user.in.readObject();
+                Server.processInput(message, user);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

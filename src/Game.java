@@ -34,6 +34,8 @@ public class Game extends Thread {
     }
 
     public void run(){
+
+        initQuestions();
         for(User u: participants){
             Server.sendToClient(new String[]{"LAUNCHGAMESUCCESS"}, u);
         }

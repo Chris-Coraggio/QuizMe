@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -14,6 +15,8 @@ public class Testing {
     static Socket socket;
     static ObjectOutputStream out;
     static ObjectInputStream in;
+
+    static Thread waitForGameLaunch;
 
     public static boolean connectToServer(String ipAddress){ //returns whether or not connection was successful
         try {
@@ -45,8 +48,35 @@ public class Testing {
     }
 
     public static boolean joinGame(String gameKey){
-        writeToOutstream(new String[]{"JOINGAME"});
+        writeToOutstream(new String[]{"JOINGAME", gameKey});
+        waitForGameLaunch = new Thread(){
+            public void run(){
+                try{
+                    in.readObject();
+                }catch(Exception e){}
+            }
+        };
+        waitForGameLaunch.start();
         return validateResponse("JOINGAMESUCCESS");
+    }
+
+    public static boolean launchGame(String gameKey){
+        writeToOutstream(new String[]{"LAUNCHGAME", gameKey});
+        return validateResponse("LAUNCHGAMESUCCESS");
+    }
+
+    public static Question getNextQuestion(){
+        writeToOutstream(new String[]{"GETNEXTQUESTION"});
+        try {
+            Object[] response = (Object [])in.readObject();
+            System.out.println(response);
+            if (response[1] instanceof Question) {
+                return (Question)response[1];
+            }else return null;
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static boolean validateResponse(String successMessage){
@@ -78,13 +108,27 @@ public class Testing {
     public static void main(String [] args) throws Exception{
         String username = "chri";
         Testing.connectToServer("127.0.0.1");
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         Testing.register(username, "chris");
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         Testing.login(username, "chris");
         Scanner scan = new Scanner(System.in);
+        String key = "";
         if(username.equals("chris")) Testing.createNewGame();
-        else Testing.joinGame(Server.games.get(0).getGameKey());
+        else{
+            key = scan.nextLine();
+            Testing.joinGame(key);
+        }
+        scan.nextLine();
+        if(username.equals("chris")) {
+            key = scan.nextLine();
+            Testing.launchGame(key);
+        }
+        Thread.sleep(2000);
+        if(!username.equals("chris")){
+            waitForGameLaunch.join();
+        }
+        System.out.println(Testing.getNextQuestion());
         scan.nextLine();
     }
 }
