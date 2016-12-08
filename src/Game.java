@@ -40,40 +40,6 @@ public class Game extends Thread {
         for(User u: participants){
             Server.sendToClient(new String[]{"LAUNCHGAMESUCCESS"}, u);
         }
-        while(true){
-            System.out.println(questionCount + "\t" + numTimesQuestionServed);
-            if(questionCount == questions.size() - 1 && numTimesQuestionServed == participants.size()){
-                //ensure all participants have finished the game (have a score)
-                System.out.println("CHECKING FOR SCORES");
-                boolean allUsersHaveScores = true;
-                for(User u: participants){
-                    if(u.getScore() == -1){
-                        allUsersHaveScores = false;
-                    }
-                }
-
-                //wait 2 seconds so we aren't constantly pinging participants
-                try {
-                    Thread.sleep(2000);
-                }catch(InterruptedException e){
-                    e.printStackTrace();
-                }
-
-                //send results
-                if(allUsersHaveScores) {
-                    ArrayList<String> clientResultsMessage = new ArrayList<String>(); //user name, score in order
-                    clientResultsMessage.add("RESULTS");
-                    for (User user : orderByScore(participants)) {
-                        clientResultsMessage.add(user.getUsername());
-                        clientResultsMessage.add(Integer.toString(user.getScore()));
-                    }
-                    for (User u : participants) {
-                        Server.sendToClient(clientResultsMessage.toArray(), u);
-                    }
-                    break;
-                }
-            }
-        }
     }
 
     public void initQuestions(){
@@ -93,7 +59,7 @@ public class Game extends Thread {
         }
     }
 
-    public Question getNextQuestion(){
+    public Question getNextQuestion(User user){
         //TODO: what if a user asks for two questions in a row
         if(numTimesQuestionServed == participants.size()){
             questionCount++;
@@ -115,4 +81,34 @@ public class Game extends Thread {
         return copyOfUsers;
     }
 
+    public void checkForResults(){
+        if(allParticipantsHaveScores()){
+            sendResultsToAllParticipants();
+        }
+    }
+
+    public boolean allParticipantsHaveScores() {//ensure all participants have finished the game (have a score)
+        if (questionCount == questions.size() - 1 && numTimesQuestionServed == participants.size()) {
+            boolean allUsersHaveScores = true;
+            for (User u : participants) {
+                if (u.getScore() == -1) {
+                    allUsersHaveScores = false;
+                }
+            }
+            return allUsersHaveScores;
+        }
+        return false;
+    }
+
+    public void sendResultsToAllParticipants(){
+        ArrayList<String> clientResultsMessage = new ArrayList<String>(); //user name, score in order
+        clientResultsMessage.add("RESULTS");
+        for (User user : orderByScore(participants)) {
+            clientResultsMessage.add(user.getUsername());
+            clientResultsMessage.add(Integer.toString(user.getScore()));
+        }
+        for (User u : participants) {
+            Server.sendToClient(clientResultsMessage.toArray(), u);
+        }
+    }
 }

@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class Server {
     private static HashMap<String, UserData> database; //keys: username, values: UserData instances
     private static String pathToDatafile = "data.txt";
     private static int numUsers = 0;
-    private static HashMap<String, Game> games = new HashMap<String, Game>(); //key: game key value: Game instance //TODO make private
+    private static HashMap<String, Game> games = new HashMap<String, Game>(); //key: game key value: Game instance
 
     public static HashMap<String, Game> getGames(){
         return games;
@@ -197,6 +198,7 @@ public class Server {
                 break;
             case("SCORE"):
                 user.updateScore(Integer.parseInt((String)clientMessage[1]));
+                findGameByUser(user).checkForResults();
                 break;
             default:
                 System.out.println("Message sent with invalid first keyword");
@@ -207,10 +209,8 @@ public class Server {
     public static void sendToClient(Object [] message, User client){
         try {
             client.writeObject(message);
-            if(message instanceof String[]){
                 System.out.println(String.format(
-                        "Sent to %s: %s", client.getUsername(), String.join(" ", (String [])message)));
-            }
+                        "Sent to %s: %s", client.getUsername(), Arrays.toString(message)));
         }catch(IOException e){
             System.out.println("Error writing to client.");
         }

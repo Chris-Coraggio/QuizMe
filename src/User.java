@@ -12,6 +12,7 @@ public class User {
     public ObjectOutputStream out;
     public ObjectInputStream in;
     private int score;
+    private int questionCount;
 
     public User(Socket client){
         this.client = client;
@@ -49,6 +50,18 @@ public class User {
 
     public int getScore(){
         return this.score;
+    }
+
+    public int getQuestionCount(){
+        return this.questionCount;
+    }
+
+    public void resetQuestionCount(){
+        this.questionCount = 0;
+    }
+
+    public void incrementQuestionCount(){
+        this.questionCount++;
     }
 
     public void incrementNumWins(){
