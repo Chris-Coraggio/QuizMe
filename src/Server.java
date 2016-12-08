@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -7,7 +5,6 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -198,8 +195,8 @@ public class Server {
             case("GETNEXTQUESTION"):
                 sendToClient(new Object[]{"NEXTQUESTION", findGameByUser(user).getNextQuestion()}, user);
                 break;
-            case("SCORES"):
-                user.updateScore((int)clientMessage[1]);
+            case("SCORE"):
+                user.updateScore(Integer.parseInt((String)clientMessage[1]));
                 break;
             default:
                 System.out.println("Message sent with invalid first keyword");

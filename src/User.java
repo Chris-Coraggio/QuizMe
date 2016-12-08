@@ -15,6 +15,7 @@ public class User {
 
     public User(Socket client){
         this.client = client;
+        this.score = -1;
         try {
             out = new ObjectOutputStream(this.client.getOutputStream());
             in = new ObjectInputStream(this.client.getInputStream());
@@ -42,6 +43,8 @@ public class User {
 
     public void updateScore(int score){
         this.score = score;
+        System.out.println(String.format("UPDATING SCORE: %s, %s", this.getUsername(), Integer.toString(this.getScore
+                ())));
     }
 
     public int getScore(){

@@ -56,8 +56,9 @@ public class Testing {
                 }catch(Exception e){}
             }
         };
+        boolean validResponse = validateResponse("JOINGAMESUCCESS");
         waitForGameLaunch.start();
-        return validateResponse("JOINGAMESUCCESS");
+        return validResponse;
     }
 
     public static boolean launchGame(String gameKey){
@@ -73,6 +74,19 @@ public class Testing {
             if (response[1] instanceof Question) {
                 return (Question)response[1];
             }else return null;
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void sendScore(int score){
+        writeToOutstream(new String[]{"SCORE", Integer.toString(score)});
+    }
+
+    public static String[] getResults(){
+        try {
+            return (String[]) in.readObject(); //TODO resolve casting
         }catch(Exception e){
             e.printStackTrace();
             return null;
@@ -103,10 +117,8 @@ public class Testing {
     }
 
 
-
-
     public static void main(String [] args) throws Exception{
-        String username = "chri";
+        String username = "chris";
         Testing.connectToServer("127.0.0.1");
         Thread.sleep(2000);
         Testing.register(username, "chris");
@@ -128,7 +140,13 @@ public class Testing {
         if(!username.equals("chris")){
             waitForGameLaunch.join();
         }
-        System.out.println(Testing.getNextQuestion());
+        for(int i=0; i< 5; i++) {
+            System.out.println(Testing.getNextQuestion());
+            scan.nextLine();
+        }
+        if(username.equals("chris")) Testing.sendScore(200);
+        else Testing.sendScore(100);
+        System.out.println(Testing.getResults());
         scan.nextLine();
     }
 }

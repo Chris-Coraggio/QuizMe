@@ -7,10 +7,11 @@ import java.util.Comparator;
  */
 public class Game extends Thread {
 
-    private int questionCount = 0, numQuestionsServed = 0;
+    private int questionCount = 0, numTimesQuestionServed = 0;
     private String gameKey;
     private ArrayList<User> participants = new ArrayList<User>();
     private ArrayList<Question> questions;
+    final int NUM_QUESTIONS_PER_ROUND = 5;
 
     public Game(String key){
         this.gameKey = key;
@@ -40,15 +41,36 @@ public class Game extends Thread {
             Server.sendToClient(new String[]{"LAUNCHGAMESUCCESS"}, u);
         }
         while(true){
-            if(numQuestionsServed == participants.size() * questions.size()){
-                ArrayList<Object> clientResultsMessage = new ArrayList<Object>(); //user name, score in order
-                clientResultsMessage.add("RESULTS");
-                for(User user: orderByScore(participants)){
-                    clientResultsMessage.add(user.getUsername());
-                    clientResultsMessage.add(user.getScore());
-                }
+            System.out.println(questionCount + "\t" + numTimesQuestionServed);
+            if(questionCount == questions.size() - 1 && numTimesQuestionServed == participants.size()){
+                //ensure all participants have finished the game (have a score)
+                System.out.println("CHECKING FOR SCORES");
+                boolean allUsersHaveScores = true;
                 for(User u: participants){
-                    Server.sendToClient(clientResultsMessage.toArray(), u);
+                    if(u.getScore() == -1){
+                        allUsersHaveScores = false;
+                    }
+                }
+
+                //wait 2 seconds so we aren't constantly pinging participants
+                try {
+                    Thread.sleep(2000);
+                }catch(InterruptedException e){
+                    e.printStackTrace();
+                }
+
+                //send results
+                if(allUsersHaveScores) {
+                    ArrayList<String> clientResultsMessage = new ArrayList<String>(); //user name, score in order
+                    clientResultsMessage.add("RESULTS");
+                    for (User user : orderByScore(participants)) {
+                        clientResultsMessage.add(user.getUsername());
+                        clientResultsMessage.add(Integer.toString(user.getScore()));
+                    }
+                    for (User u : participants) {
+                        Server.sendToClient(clientResultsMessage.toArray(), u);
+                    }
+                    break;
                 }
             }
         }
@@ -57,18 +79,27 @@ public class Game extends Thread {
     public void initQuestions(){
         questions = new ArrayList<Question>();
         ScrapeFromWeb sfw = new ScrapeFromWeb();
-        for(int i=0; i < 5; i++){
+
+        //ensure we have the correct number of questions per round
+        while(true){
             try {
                 questions.add(sfw.getRandomQuestion());
             }catch(Exception e){
                 e.printStackTrace();
             }
+            if(questions.size() == NUM_QUESTIONS_PER_ROUND){
+                break;
+            }
         }
     }
 
     public Question getNextQuestion(){
-        if(numQuestionsServed > participants.size()) questionCount++;
-        numQuestionsServed++;
+        //TODO: what if a user asks for two questions in a row
+        if(numTimesQuestionServed == participants.size()){
+            questionCount++;
+            numTimesQuestionServed = 0;
+        }
+        numTimesQuestionServed++;
         return questions.get(questionCount);
     }
 
