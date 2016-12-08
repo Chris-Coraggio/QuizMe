@@ -15,7 +15,7 @@ public class Question implements Serializable {
     public Question(String question, String answer, int difficulty, String category){
 
         this.question = properCase(question);
-        this.answer = answer.toUpperCase();
+        this.answer = clean(answer.toUpperCase());
         this.difficulty = difficulty;
         this.category = properCase(category);
     }
@@ -35,6 +35,12 @@ public class Question implements Serializable {
             }
         }
         return new String(properCased);
+    }
+
+    public String clean(String str){
+        str = str.replace("<I>", "");
+        str = str.replace("</I>", "");
+        return str;
     }
 
     public String getQuestion(){

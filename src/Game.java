@@ -60,13 +60,13 @@ public class Game extends Thread {
     }
 
     public Question getNextQuestion(User user){
-        //TODO: what if a user asks for two questions in a row
-        if(numTimesQuestionServed == participants.size()){
-            questionCount++;
-            numTimesQuestionServed = 0;
+        int count = user.getQuestionCount();
+        if(user.getQuestionCount() == NUM_QUESTIONS_PER_ROUND - 1){
+            user.resetQuestionCount();
+        }else{
+            user.incrementQuestionCount();
         }
-        numTimesQuestionServed++;
-        return questions.get(questionCount);
+        return questions.get(count);
     }
 
     public ArrayList<User> orderByScore(ArrayList<User> users){
@@ -88,16 +88,13 @@ public class Game extends Thread {
     }
 
     public boolean allParticipantsHaveScores() {//ensure all participants have finished the game (have a score)
-        if (questionCount == questions.size() - 1 && numTimesQuestionServed == participants.size()) {
-            boolean allUsersHaveScores = true;
-            for (User u : participants) {
-                if (u.getScore() == -1) {
-                    allUsersHaveScores = false;
-                }
+        boolean allUsersHaveScores = true;
+        for (User u : participants) {
+            if (u.getScore() == -1) {
+                allUsersHaveScores = false;
             }
-            return allUsersHaveScores;
         }
-        return false;
+        return allUsersHaveScores;
     }
 
     public void sendResultsToAllParticipants(){
@@ -109,6 +106,7 @@ public class Game extends Thread {
         }
         for (User u : participants) {
             Server.sendToClient(clientResultsMessage.toArray(), u);
+            Server.updateDatabase(u);
         }
     }
 }

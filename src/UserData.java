@@ -1,7 +1,9 @@
+import java.io.Serializable;
+
 /**
  * Created by Chris on 12/6/2016.
  */
-public class UserData {
+public class UserData implements Serializable{
 
     private byte[] salt;
     private String hashedPassword;

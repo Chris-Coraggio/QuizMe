@@ -56,6 +56,10 @@ public class Server {
                 try {
                     ObjectInputStream readFromDatabase = new ObjectInputStream(new FileInputStream(pathToDatafile));
                     database = (HashMap<String, UserData>) readFromDatabase.readObject();
+                    if(database == null){
+                        database = new HashMap<String, UserData>();
+                    }
+                    readFromDatabase.close();
                 } catch (EOFException ex) {
                     database = new HashMap<String, UserData>();
                 }
@@ -63,7 +67,16 @@ public class Server {
         } catch (Exception e) {
             e.printStackTrace(); //this should work, so if it doesn't just let me know
         }
+    }
 
+    public static void updateDatabaseFile() {
+        try {
+            ObjectOutputStream writeToDatabase = new ObjectOutputStream(new FileOutputStream(pathToDatafile, false));
+            writeToDatabase.writeObject(database);
+            writeToDatabase.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void initSocket() {
@@ -96,6 +109,12 @@ public class Server {
         return true;
     }
 
+    public static void updateDatabase(User user){
+        removeByUser(user);
+        database.put(user.getUsername(), user.getUserData());
+        updateDatabaseFile();
+    }
+
     public static boolean removeByUser(User user){
         Iterator<Map.Entry<String, User>> it = usersHashmap.entrySet().iterator();
         for(int i=0; i<usersHashmap.size(); i++){
@@ -112,6 +131,7 @@ public class Server {
         if (!database.containsKey(username)) {
             byte[] salt = generateSalt();
             database.put(username, new UserData(salt, hashPassword(password, salt), 0));
+            updateDatabaseFile();
             return true;
         } else {
             return false;
@@ -125,7 +145,8 @@ public class Server {
         for(int i = 0; i < 3; i++){
             key += choices.charAt((int)(Math.random() * 26));
         }
-        return key;
+        //return key;
+        return "aaa";
     }
 
     public static String hashPassword(String origPassword, byte[] salt){
@@ -194,7 +215,7 @@ public class Server {
                 //sends success message to all clients in game at the start of the game
                 break;
             case("GETNEXTQUESTION"):
-                sendToClient(new Object[]{"NEXTQUESTION", findGameByUser(user).getNextQuestion()}, user);
+                sendToClient(new Object[]{"NEXTQUESTION", findGameByUser(user).getNextQuestion(user)}, user);
                 break;
             case("SCORE"):
                 user.updateScore(Integer.parseInt((String)clientMessage[1]));

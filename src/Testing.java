@@ -127,18 +127,16 @@ public class Testing {
         Thread.sleep(2000);
         Testing.login(username, "chris");
         Scanner scan = new Scanner(System.in);
-        String key = "";
+        String key = "aaa";
         if(username.equals("chris")) Testing.createNewGame();
         else{
-            key = scan.nextLine();
             Testing.joinGame(key);
         }
         scan.nextLine();
         if(username.equals("chris")) {
-            key = scan.nextLine();
             Testing.launchGame(key);
         }
-        Thread.sleep(2000);
+        //Thread.sleep(2000);
         if(!username.equals("chris")){
             waitForGameLaunch.join();
         }

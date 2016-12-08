@@ -34,6 +34,10 @@ public class User {
         this.userData = data;
     }
 
+    public UserData getUserData(){
+        return this.userData;
+    }
+
     public void setUsername(String username){
         this.username = username;
     }
