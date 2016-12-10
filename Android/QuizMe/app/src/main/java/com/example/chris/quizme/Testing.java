@@ -1,9 +1,12 @@
+package com.example.chris.quizme;
+
+import android.text.TextUtils;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -109,7 +112,7 @@ public class Testing {
     public static void writeToOutstream(Object[] message){
         try {
             if(message instanceof String[]){
-                System.out.println(String.format("Sent to server: %s", String.join(" ", (String [])message)));
+                System.out.println(String.format("Sent to server: %s", TextUtils.join(" ", (String [])message)));
             }
             out.writeObject(message);
             out.flush();
@@ -121,7 +124,7 @@ public class Testing {
 
     public static void main(String [] args) throws Exception{
         String username = "chri";
-        Testing.connectToServer("10.192.78.17");
+        Testing.connectToServer("127.0.0.1");
         Thread.sleep(2000);
         Testing.register(username, "chris");
         Thread.sleep(2000);

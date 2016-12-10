@@ -1,18 +1,17 @@
+import sun.rmi.runtime.Log;
+
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Chris on 11/14/2016.
  */
+
+//TODO listview item selection is not working
 
 public class Server {
 
@@ -23,7 +22,6 @@ public class Server {
     private static String pathToDatafile = "data.txt";
     private static int numUsers = 0;
     private static HashMap<String, Game> games = new HashMap<String, Game>(); //key: game key value: Game instance
-
     public static HashMap<String, Game> getGames(){
         return games;
     }
@@ -80,9 +78,9 @@ public class Server {
     }
 
     public static void initSocket() {
-        String ipAddress = "";
+        InetAddress ipAddress = null;
         try {
-            ipAddress = InetAddress.getLocalHost().toString();
+            ipAddress = InetAddress.getLocalHost();
         } catch (UnknownHostException e) {
             System.out.println("Failed to discover own IP address");
         }
@@ -138,17 +136,6 @@ public class Server {
         }
     }
 
-    public static String getRandomGameKey(){
-        //random string of lowercase length 3
-        final String choices = "abcdefghijklmnopqrstuvwxyz";
-        String key = "";
-        for(int i = 0; i < 3; i++){
-            key += choices.charAt((int)(Math.random() * 26));
-        }
-        //return key;
-        return "aaa";
-    }
-
     public static String hashPassword(String origPassword, byte[] salt){
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -202,7 +189,7 @@ public class Server {
                 sendToClient(startNewGame(user), user);
                 break;
             case("GETAVAILABLEGAMES"):
-                sendToClient(new HashMap[]{compileGames()}, user);
+                sendToClient(games.keySet().toArray(), user);
                 break;
             case("JOINGAME"):
                 sendToClient(joinGame(user, (String)clientMessage[1]), user); //gameKey
@@ -264,32 +251,22 @@ public class Server {
 
     public static String[] startNewGame(User user){
         try {
-            String newGameKey = getRandomGameKey();
-            Game newGame = new Game(newGameKey);
+            Game newGame = new Game();
             newGame.addParticipant(user);
-            games.put(newGameKey, newGame);
-            return new String[]{"NEWGAMESUCCESS", "Created new game!", newGame.getGameKey()};
+            games.put(user.getUsername(), newGame);
+            return new String[]{"NEWGAMESUCCESS", "Created new game!", user.getUsername()};
         }catch(Exception e){
             e.printStackTrace();
             return new String[]{"NEWGAMEFAILURE", "Failed to create new game."};
         }
     }
 
-    public static HashMap<String, String> compileGames(){ //keys: leader usernames values: gameKeys
-        HashMap<String, String> leadersAndKeys = new HashMap<String, String>();
-        for(Game g: games.values()){
-            leadersAndKeys.put(g.getLeader().getUsername(), g.getGameKey());
-        }
-        return leadersAndKeys;
-    }
-
-    public static String[] joinGame(User user, String gameKey){
-        User gameLeader = games.get(gameKey).getLeader();
-        if(gameLeader != null && !gameLeader.equals(user)){
-            games.get(gameKey).addParticipant(usersHashmap.get(user.getUsername()));
-            return(new String[]{"JOINGAMESUCCESS", String.format("Joined %s's game", gameLeader.getUsername())});
+    public static String[] joinGame(User user, String leader){
+        if(games != null && games.containsKey(leader)){
+            games.get(leader).addParticipant(usersHashmap.get(user.getUsername()));
+            return(new String[]{"JOINGAMESUCCESS", String.format("Joined %s's game", leader)});
         }else{
-            return(new String[]{"JOINGAMEFAILURE", String.format("Failed to join %s's game", gameLeader.getUsername())});
+            return(new String[]{"JOINGAMEFAILURE", String.format("Failed to join %s's game", leader)});
         }
     }
 

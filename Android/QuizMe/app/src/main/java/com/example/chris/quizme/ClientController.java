@@ -1,12 +1,13 @@
 package com.example.chris.quizme;
+import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.util.Pair;
+import android.widget.ArrayAdapter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -27,88 +28,115 @@ public class ClientController {
 
     public ClientController() {}
 
-    public boolean connectToServer(String ipAddress){ //returns whether or not connection was successful
-       try {
-            socket = new Socket(ipAddress, PORT);
-            out = new ObjectOutputStream(socket.getOutputStream());
-            in = new ObjectInputStream(socket.getInputStream());
-           return true;
-        }catch(IOException e){
-            System.out.println(String.format(
-                    "Failed to connect to server. Ensure it is running on %s:%s and try again",
-                    ipAddress, PORT));
-           return false;
-        }
+    public void connectToServer(String ipAddress) { //returns whether or not connection was successful
+        new ServerConnection().execute(ipAddress);
     }
 
-    public boolean login(String username, String password){ //returns true if successful
-        writeToOutstream(new String[]{"LOGIN", username, password});
-        return validateResponse("LOGINSUCCESS");
+    public void login(String username, String password){ //returns true if successful
+        new WriteToOutstream().execute(new String[]{"LOGIN", username, password});
+        new ValidateResponse().execute("LOGINSUCCESS");
     }
 
-    public boolean register(String username, String password){ //returns true if successful
-        writeToOutstream(new String[]{"REGISTER", username, password});
-        return validateResponse("REGISTERSUCCESS");
+    public void register(String username, String password){ //returns true if successful
+        new WriteToOutstream().execute(new String[]{"REGISTER", username, password});
+        new ValidateResponse().execute("REGISTERSUCCESS");
     }
 
-    public List<String> getAvailableGames(){
-        writeToOutstream(new String[]{"GETAVAILABLEGAMES"});
-        try {
-            return Arrays.asList((String[])in.readObject());
-        }catch(Exception e){
-            return null;
-        }
+    public void createNewGame(){
+        new WriteToOutstream().execute(new String[]{"STARTNEWGAME"});
+        new ValidateResponse().execute("NEWGAMESUCCESS");
+    }
+    
+    public void joinGame(String leader){
+        new WriteToOutstream().execute(new String[]{"JOINGAME", leader});
+        new ValidateResponse().execute("JOINGAMESUCCESS");
     }
 
-    public boolean createNewGame(){
-        writeToOutstream(new String[]{"STARTNEWGAME"});
-        return validateResponse("NEWGAMESUCCESS");
+    public void refreshGamesInList(){
+        new WriteToOutstream().execute(new String[]{"GETAVAILABLEGAMES"});
+        new RefreshGamesInList().execute();
     }
 
-    public HashMap<String, String> refreshGamesInList(){
-        try {
-            writeToOutstream(new String[]{"GETAVAILABLEGAMES"});
-            return (HashMap<String, String>) in.readObject();
-        }catch(Exception e){
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public boolean joinGame(String gameKey){
-        writeToOutstream(new String[]{"JOINGAME"});
-        return validateResponse("JOINGAMESUCCESS");
-    }
-
-    public boolean validateResponse(String successMessage){
-        try {
-            String[] response = (String[]) in.readObject();
-            MainActivity.showToast(response[1]);
-            if (response[0].equals(successMessage)) {
-                return true;
-            } else return false;
-        }catch(Exception e){
-            return false;
-        }
-    }
-
-    public void writeToOutstream(Object[] message){
-        try {
-            if(message instanceof String[]){
-                System.out.println(String.format("Sent to server: %s", TextUtils.join(" ", message)));
+    class ServerConnection extends AsyncTask<String, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... ipAddress) {
+            try {
+                socket = new Socket();
+                socket.connect(new InetSocketAddress(ipAddress[0], PORT), 10000);  //ten second timeout
+                out = new ObjectOutputStream(socket.getOutputStream());
+                in = new ObjectInputStream(socket.getInputStream());
+            } catch (IOException e) {
+                System.out.println(String.format(
+                        "Failed to connect to server. Ensure it is running on %s:%s and try again",
+                        ipAddress[0], PORT));
             }
-            out.writeObject(message);
-            out.flush();
-        }catch(IOException e){
-            System.out.println("Error writing to outstream");
+            return (out != null);
+        }
+        protected void onPostExecute(Boolean isValid){
+            if(isValid){
+                MainActivity.showNext();
+            }
         }
     }
 
-    public void sleep(long millis){
-        try{
-            Thread.sleep(millis);
-        }catch (InterruptedException e){
-            System.out.println("Interrupted!");
+    public class ValidateResponse extends AsyncTask<String, Void, Boolean> {
+
+        private String[] response;
+
+        @Override
+        protected Boolean doInBackground(String... successMessage) {
+            try {
+                response = (String[]) in.readObject();
+                return response[0].equals(successMessage[0]);
+            }catch(Exception e){
+                e.printStackTrace();
+                return false;
+            }
+        }
+        protected void onPostExecute(Boolean isValid){
+            MainActivity.showToast(response[1]);
+            if(isValid){
+                MainActivity.showNext();
+            }
+        }
+    }
+
+    public class WriteToOutstream extends AsyncTask<Object, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Object... message) {
+            try {
+                if(message instanceof String[]){
+                    System.out.println(String.format("Sent to server: %s", TextUtils.join(" ", message)));
+                }
+                out.writeObject(message);
+                out.flush();
+            }catch(IOException e){
+                System.out.println("Error writing to outstream");
+            }finally {
+                return null;
+            }
+        }
+    }
+
+    public class RefreshGamesInList extends AsyncTask<Void, Void, String[]> {
+
+        @Override
+        protected String[] doInBackground(Void... args) {
+            try {
+                Object[] leaders = (Object[])in.readObject();
+                return Arrays.copyOf(leaders, leaders.length, String[].class);
+            }catch(Exception e){
+                e.printStackTrace();
+                return null;
+            }
+        }
+        protected void onPostExecute(String[] leaders){
+            if(leaders != null) {
+                MainActivity.updateGameList(leaders);
+            }else{
+                MainActivity.showToast("Still no games to show. Maybe you should start one!");
+            }
         }
     }
 

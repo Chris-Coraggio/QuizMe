@@ -7,23 +7,15 @@ import java.util.Comparator;
  */
 public class Game extends Thread {
 
-    private int questionCount = 0, numTimesQuestionServed = 0;
-    private String gameKey;
     private ArrayList<User> participants = new ArrayList<User>();
     private ArrayList<Question> questions;
     final int NUM_QUESTIONS_PER_ROUND = 5;
 
-    public Game(String key){
-        this.gameKey = key;
-    }
+    public Game(){}
 
     public void addParticipant(User u){
-        System.out.println(String.format("Adding user %s to game %s", u.getUsername(), this.gameKey));
+        System.out.println(String.format("Adding user %s to " + (participants.size() == 0 ? "new game" : this.getLeader().getUsername() + "'s game"), u.getUsername()));
         participants.add(u);
-    }
-
-    public String getGameKey(){
-        return this.gameKey;
     }
 
     public User getLeader(){
