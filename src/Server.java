@@ -11,7 +11,6 @@ import java.util.*;
  * Created by Chris on 11/14/2016.
  */
 
-//TODO listview item selection is not working
 
 public class Server {
 
@@ -195,11 +194,14 @@ public class Server {
                 sendToClient(joinGame(user, (String)clientMessage[1]), user); //gameKey
                 break;
             case("LAUNCHGAME"):
-                String[] launchGameResponse = launchGame(user, (String)clientMessage[1]);
+                String[] launchGameResponse = launchGame(user);
                 if(launchGameResponse[0].equals("LAUNCHGAMEFAILURE")){
                     sendToClient(launchGameResponse, user);
                 }
                 //sends success message to all clients in game at the start of the game
+                break;
+            case("GETPLAYERS"): //only leaders call this one
+                sendToClient(games.get(user.getUsername()).getParticipantUsernames(), user);
                 break;
             case("GETNEXTQUESTION"):
                 sendToClient(new Object[]{"NEXTQUESTION", findGameByUser(user).getNextQuestion(user)}, user);
@@ -270,10 +272,9 @@ public class Server {
         }
     }
 
-    public static String[] launchGame(User user, String gameKey){
-
-        if(games.get(gameKey).getLeader().getUsername().equals(user.getUsername())){
-            games.get(gameKey).start();
+    public static String[] launchGame(User user){
+        if(games.get(user.getUsername()).getLeader().getUsername().equals(user.getUsername())){
+            games.get(user.getUsername()).start();
             return new String[]{"LAUNCHGAMESUCCESS"};
         }else{
             return new String[]{"LAUNCHGAMEFAILURE", "Failed to launch game. Please try again."};

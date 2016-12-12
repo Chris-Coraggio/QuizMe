@@ -4,6 +4,14 @@
     android:layout_height="match_parent"
     android:weightSum="1">
 
+    <Chronometer
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/question_timer"
+        android:textAlignment="textEnd"
+        android:layout_weight="0.07"
+        android:textSize="26sp" />
+
     <TextView
         android:text="Category:"
         android:layout_width="match_parent"

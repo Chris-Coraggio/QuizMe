@@ -26,11 +26,19 @@ public class Game extends Thread {
         return participants.contains(u);
     }
 
+    public String[] getParticipantUsernames(){
+        String[] participantUsernames = new String[participants.size()];
+        for(int i=0; i < participants.size(); i++){
+            participantUsernames[i] = participants.get(i).getUsername();
+        }
+        return participantUsernames;
+    }
+
     public void run(){
 
         initQuestions();
         for(User u: participants){
-            Server.sendToClient(new String[]{"LAUNCHGAMESUCCESS"}, u);
+            Server.sendToClient(new String[]{"LAUNCHGAMESUCCESS", "May the odds be ever in your favor"}, u);
         }
     }
 

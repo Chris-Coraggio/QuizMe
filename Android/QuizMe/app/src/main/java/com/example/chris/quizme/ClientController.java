@@ -21,8 +21,8 @@ public class ClientController {
     final int PORT = 50000;
 
     Socket socket;
-    ObjectOutputStream out;
-    ObjectInputStream in;
+    static ObjectOutputStream out;
+    static ObjectInputStream in;
 
     ClientModel model = new ClientModel();
 
@@ -57,6 +57,24 @@ public class ClientController {
         new RefreshGamesInList().execute();
     }
 
+    public void refreshPlayersInList(){
+        new WriteToOutstream().execute(new String[]{"GETPLAYERS"});
+        new RefreshPlayersInList().execute();
+    }
+
+    public void launchGame(){
+        new WriteToOutstream().execute(new String[]{"LAUNCHGAME"});
+        new ValidateResponse().execute("LAUNCHGAMESUCCESS");
+    }
+
+    public void waitForGameLaunch(){
+        new WaitForGameLaunch().execute();
+    }
+
+    public void submitAnswer(String answer){
+        GameService.processAnswer(answer);
+    }
+
     class ServerConnection extends AsyncTask<String, Void, Boolean> {
         @Override
         protected Boolean doInBackground(String... ipAddress) {
@@ -86,7 +104,7 @@ public class ClientController {
         @Override
         protected Boolean doInBackground(String... successMessage) {
             try {
-                response = (String[]) in.readObject();
+                response = getStringArrayFromObjectArray((Object[]) in.readObject());
                 return response[0].equals(successMessage[0]);
             }catch(Exception e){
                 e.printStackTrace();
@@ -95,13 +113,23 @@ public class ClientController {
         }
         protected void onPostExecute(Boolean isValid){
             MainActivity.showToast(response[1]);
+            if(response[0].equals("REGISTERSUCCESS")){
+                return;                 //if it's a new user, stay on login screen
+            }
             if(isValid){
                 MainActivity.showNext();
+            }
+            if(response[0].equals("NEWGAMESUCCESS")){
+                MainActivity.showNext(); //if starting a game, skip the waiting screen
+            }else if(response[0].equals("JOINGAMESUCCESS")){
+                new WaitForGameLaunch().execute();
+            }else if(response[0].equals("LAUNCHGAMESUCCESS")){
+                new GameService().execute(); //start the game thread for leader
             }
         }
     }
 
-    public class WriteToOutstream extends AsyncTask<Object, Void, Void> {
+    public static class WriteToOutstream extends AsyncTask<Object, Void, Void> {
 
         @Override
         protected Void doInBackground(Object... message) {
@@ -119,13 +147,35 @@ public class ClientController {
         }
     }
 
+    public class WaitForGameLaunch extends AsyncTask<Void, Void, Boolean>{
+
+        private String [] response;
+        @Override
+        protected Boolean doInBackground(Void... args) {
+            try {
+                response = getStringArrayFromObjectArray(((Object[]) in.readObject()));
+                return response[0].equals("LAUNCHGAMESUCCESS");
+            }catch(ClassNotFoundException | IOException e){
+                return false;
+            }
+        }
+        protected void onPostExecute(Boolean validLaunch){
+            if(validLaunch) {
+                MainActivity.showNext();
+                MainActivity.showNext(); //skip leader waiting screen
+                new GameService().execute();
+            }
+            MainActivity.showToast(response[1]);
+        }
+    }
+
     public class RefreshGamesInList extends AsyncTask<Void, Void, String[]> {
 
         @Override
         protected String[] doInBackground(Void... args) {
             try {
                 Object[] leaders = (Object[])in.readObject();
-                return Arrays.copyOf(leaders, leaders.length, String[].class);
+                return getStringArrayFromObjectArray(leaders);
             }catch(Exception e){
                 e.printStackTrace();
                 return null;
@@ -140,7 +190,32 @@ public class ClientController {
         }
     }
 
+    public class RefreshPlayersInList extends AsyncTask<Void, Void, String[]> {
+
+        @Override
+        protected String[] doInBackground(Void... args) {
+            try {
+                Object[] players = (Object[])in.readObject();
+                return getStringArrayFromObjectArray(players);
+            }catch(Exception e){
+                e.printStackTrace();
+                return null;
+            }
+        }
+        protected void onPostExecute(String[] players){
+            if(players != null) {
+                MainActivity.updatePlayersList(players);
+            }else{
+                MainActivity.showToast("Nobody's here! Invite some friends.");
+            }
+        }
+    }
+
     public String getUsername(){
         return model.getUsername();
+    }
+
+    public String[] getStringArrayFromObjectArray(Object[] objects){
+        return Arrays.copyOf(objects, objects.length, String[].class);
     }
 }
