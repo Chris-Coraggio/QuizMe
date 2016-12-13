@@ -3,6 +3,10 @@ package com.example.chris.quizme;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+
 /**
  * Created by Chris on 12/11/2016.
  */
@@ -10,37 +14,85 @@ import android.os.CountDownTimer;
 public class GameService extends AsyncTask<Void, Void, Void>{
     //facilitates the game logic and keeps it out of the controller
     final int NUM_QUESTIONS_PER_ROUND = 5;
-    ClientController ctrl = new ClientController();
-    private static Question currentQuestion;
+    private ArrayList<Question> questions = new ArrayList<Question>();
+    static ClientController ctrl = new ClientController();
+    public static Question currentQuestion;
     private static CountDownTimer clock;
-    private static int score = 0, questionCount = 0;
-    boolean isRunning = false;
+    public static int score = 0, questionCount = 0;
+    public boolean isRunning = false;
 
-    public GameService(){
-        clock = new CountDownTimer(60000, 1000) {
-            public void onTick(long millisUntilFinished) {
-                MainActivity.setTimerText((int)millisUntilFinished / 1000);
-                isRunning = true;
-            }
-            public void onFinish() {
-                MainActivity.setTimerText(0);
-                isRunning = false;
-            }
-        };
+    protected void onPreExecute(){
+        try {
+            new InitQuestions().execute().get();
+        }catch(ExecutionException|InterruptedException e){
+            e.printStackTrace();
+        }finally {
+            clock = new CountDownTimer(60000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    System.out.println("Setting timer text");
+                    MainActivity.setTimerText((int) millisUntilFinished / 1000);
+                    isRunning = true;
+                }
+
+                public void onFinish() {
+                    clock.cancel();
+                    System.out.println("Timer finished");
+                    MainActivity.setTimerText(0);
+                    isRunning = false;
+                    ctrl.updateQuestion(questions.get(questionCount)); //TODO questions is not initializing
+                    questionCount++;
+                }
+            }.start();
+            clock.onFinish();
+        }
     }
 
     @Override
     protected Void doInBackground(Void... params) {
-        while(questionCount < NUM_QUESTIONS_PER_ROUND){
+
             if(!isRunning){
-                getNextQuestion();
+                System.out.println("Starting the clock");
                 clock.start();
-                questionCount++;
-            }else{
-                Thread.yield(); //let other threads go first
+            }
+            try{
+                System.out.println("Sleepy time");
+                Thread.sleep(1000);
+            }catch(InterruptedException e){
+                e.printStackTrace();
+            }
+        return null;
+    }
+
+    public class InitQuestions extends AsyncTask<Void, Void, Void>{
+
+        protected void onPreExecute(){
+            try {
+                new ClientController.WriteToOutstream().execute(new String[]{"GETQUESTIONS"}).get();
+            }catch (InterruptedException|ExecutionException e) {
+                e.printStackTrace();
             }
         }
-        return null;
+        protected Void doInBackground(Void... params){
+            String[] response = new String[0];
+            try {
+                response = ClientController.getStringArrayFromObjectArray((Object[]) ctrl.in.readObject());
+            } catch (ClassNotFoundException|IOException e) {
+                e.printStackTrace();
+            }
+            response = response[1].split("---");
+            for(int i = 0; i < response.length; i+=4) {
+                questions.add(new Question(response[i], response[i+1], Integer.parseInt(response[i+2]), response[i+3]));
+            }
+            return null;
+        }
+        protected Void onPostExecute(){
+            try{
+                Thread.sleep(2000);
+            }catch(InterruptedException e){
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
     public static int calculateScore(int questionDifficulty, int numSecondsLeft){
@@ -48,7 +100,7 @@ public class GameService extends AsyncTask<Void, Void, Void>{
     }
 
     public static void stopClock(){
-        clock.cancel();
+        clock.onFinish();
     }
 
     public static void processAnswer(String answer){
@@ -62,32 +114,5 @@ public class GameService extends AsyncTask<Void, Void, Void>{
 
     public static boolean checkAnswer(String playerAnswer){
         return (currentQuestion != null ? playerAnswer.toUpperCase().equals(currentQuestion.getAnswer().toUpperCase()) : false);
-    }
-
-    public void getNextQuestion(){
-        new ClientController.WriteToOutstream().execute(new String[]{"GETNEXTQUESTION"});
-        new GetNextQuestion().execute();
-    }
-
-    public class GetNextQuestion extends AsyncTask<Void, Question, Question> {
-
-        @Override
-        protected Question doInBackground(Void... args) {
-            try {
-                Object[] question = (Object[])ctrl.in.readObject();
-                return (Question)question[1];
-            }catch(Exception e){
-                e.printStackTrace();
-                return null;
-            }
-        }
-        protected void onPostExecute(Question q){
-            if(q != null) {
-                MainActivity.replaceQuestionOnScreen(q.getCategory(), q.getQuestion(), q.getScrambledAnswer());
-                currentQuestion = q;
-            }else{
-                MainActivity.showToast("Unable to display next question. Please try again.");
-            }
-        }
     }
 }

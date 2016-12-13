@@ -29,6 +29,10 @@ public class ScrapeFromWeb {
                              new JSONObject(json.get("category").toString()).get("title").toString());
     }
 
+//    public Question getRandomQuestion(){
+//        return new Question("Question", "Answer", 2, "Category");
+//    }
+
     public static void main (String [] args) throws Exception{
         Question q = new ScrapeFromWeb().getRandomQuestion();
         System.out.println(q.getAnswer() + "\t" + q.getScrambledAnswer());

@@ -9,7 +9,6 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -23,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     private static Context context;
     private static ListView gameList, playersList;
     private static String selectedGame = "";
-    private static Chronometer timer;
+    private static TextView timer;
     private static TextView category, question, scrambledAnswer;
 
     @Override
@@ -117,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        timer = (Chronometer) findViewById(R.id.question_timer);
+        timer = (TextView) findViewById(R.id.question_timer);
         category = (TextView) findViewById(R.id.category_body);
         question = (TextView) findViewById(R.id.questions_body);
         scrambledAnswer = (TextView) findViewById(R.id.unscramble_body);
@@ -166,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static void setTimerText(int secondsLeft){
-        timer.setText(secondsLeft);
+        timer.setText(Integer.toString(secondsLeft));
     }
 
     public static int getTimerText(){

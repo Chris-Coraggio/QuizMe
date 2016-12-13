@@ -203,8 +203,8 @@ public class Server {
             case("GETPLAYERS"): //only leaders call this one
                 sendToClient(games.get(user.getUsername()).getParticipantUsernames(), user);
                 break;
-            case("GETNEXTQUESTION"):
-                sendToClient(new Object[]{"NEXTQUESTION", findGameByUser(user).getNextQuestion(user)}, user);
+            case("GETQUESTIONS"):
+                sendToClient(new String[]{"QUESTIONS", findGameByUser(user).getQuestions()}, user);
                 break;
             case("SCORE"):
                 user.updateScore(Integer.parseInt((String)clientMessage[1]));

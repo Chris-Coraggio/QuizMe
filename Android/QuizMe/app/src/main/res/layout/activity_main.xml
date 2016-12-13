@@ -269,13 +269,14 @@
             android:layout_height="match_parent"
             android:weightSum="1">
 
-            <Chronometer
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/question_timer"
-                android:textAlignment="textEnd"
                 android:layout_weight="0.07"
-                android:textSize="26sp" />
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:textSize="28sp"
+                android:textAlignment="textEnd" />
 
             <TextView
                 android:text="Category:"
@@ -292,7 +293,6 @@
                 android:id="@+id/category_body"
                 android:textAppearance="@android:style/TextAppearance.Material.Large"
                 android:fontFamily="casual"
-                android:layout_marginTop="10dp"
                 android:layout_marginLeft="10dp" />
 
             <TextView
@@ -301,7 +301,6 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/question_label"
                 android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                android:layout_marginTop="20dp"
                 android:layout_marginLeft="10dp" />
 
             <TextView
@@ -310,7 +309,6 @@
                 android:id="@+id/questions_body"
                 android:textAppearance="@android:style/TextAppearance.Material.Large"
                 android:fontFamily="casual"
-                android:layout_marginTop="10dp"
                 android:layout_marginLeft="10dp"
                 android:layout_weight="0.11" />
 
@@ -320,7 +318,6 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/unscramble_label"
                 android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-                android:layout_marginTop="20dp"
                 android:layout_marginLeft="10dp" />
 
             <TextView
@@ -329,7 +326,6 @@
                 android:id="@+id/unscramble_body"
                 android:textAppearance="@android:style/TextAppearance.Material.Large"
                 android:fontFamily="casual"
-                android:layout_marginTop="10dp"
                 android:layout_marginLeft="10dp" />
 
             <EditText
@@ -338,7 +334,7 @@
                 android:inputType="textPersonName"
                 android:ems="10"
                 android:id="@+id/response"
-                android:layout_marginTop="50dp" />
+                android:layout_marginTop="10dp" />
 
             <TextView
                 android:text="Type your response"

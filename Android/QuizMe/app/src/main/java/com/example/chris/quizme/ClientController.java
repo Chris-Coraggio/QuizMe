@@ -1,7 +1,6 @@
 package com.example.chris.quizme;
 import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.widget.ArrayAdapter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,8 +8,6 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Chris on 11/17/2016.
@@ -67,6 +64,15 @@ public class ClientController {
         new ValidateResponse().execute("LAUNCHGAMESUCCESS");
     }
 
+    public void updateQuestion(Question question){
+        System.out.println("Got to controller");
+        try {
+            new UpdateQuestion().execute(question);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public void waitForGameLaunch(){
         new WaitForGameLaunch().execute();
     }
@@ -121,8 +127,6 @@ public class ClientController {
             }
             if(response[0].equals("NEWGAMESUCCESS")){
                 MainActivity.showNext(); //if starting a game, skip the waiting screen
-            }else if(response[0].equals("JOINGAMESUCCESS")){
-                new WaitForGameLaunch().execute();
             }else if(response[0].equals("LAUNCHGAMESUCCESS")){
                 new GameService().execute(); //start the game thread for leader
             }
@@ -211,11 +215,34 @@ public class ClientController {
         }
     }
 
+    public static class UpdateQuestion extends AsyncTask<Question, Void, Boolean> {
+
+        public Question q;
+        @Override
+        protected Boolean doInBackground(Question... question) {
+            q = question[0];
+            if (q != null) {
+                GameService.currentQuestion = q;
+                GameService.questionCount++;
+                return true;
+            } else {
+                MainActivity.showToast("Unable to display next question. Please try again.");
+            }
+            return false;
+        }
+
+        protected void onPostExecute(Boolean validQuestion){
+            if(validQuestion) {
+                MainActivity.replaceQuestionOnScreen(q.getCategory(), q.getQuestion(), q.getScrambledAnswer());
+            }
+        }
+    }
+
     public String getUsername(){
         return model.getUsername();
     }
 
-    public String[] getStringArrayFromObjectArray(Object[] objects){
+    public static String[] getStringArrayFromObjectArray(Object[] objects){
         return Arrays.copyOf(objects, objects.length, String[].class);
     }
 }

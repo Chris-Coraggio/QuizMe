@@ -75,4 +75,14 @@ public class Question implements Serializable {
         return String.format("Question: %s\nAnswer: %s\nDifficulty: %d\nCategory: %s\n",
                 this.question, this.answer, this.difficulty, this.category);
     }
+
+    public String serialize(){
+        return String.join("---", new String[]{this.getQuestion(), this.getAnswer(),
+                Integer.toString(this.getDifficulty()), this.getCategory()});
+    }
+
+    public static Question deSerialize(String str){
+        String[] params = str.split("---");
+        return new Question(params[0], params[1], Integer.parseInt(params[2]), params[3]);
+    }
 }

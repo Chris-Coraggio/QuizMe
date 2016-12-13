@@ -8,7 +8,7 @@ import java.util.Comparator;
 public class Game extends Thread {
 
     private ArrayList<User> participants = new ArrayList<User>();
-    private ArrayList<Question> questions;
+    private ArrayList<String> questions;
     final int NUM_QUESTIONS_PER_ROUND = 5;
 
     public Game(){}
@@ -43,30 +43,26 @@ public class Game extends Thread {
     }
 
     public void initQuestions(){
-        questions = new ArrayList<Question>();
+        questions = new ArrayList<String>();
         ScrapeFromWeb sfw = new ScrapeFromWeb();
 
         //ensure we have the correct number of questions per round
         while(true){
             try {
-                questions.add(sfw.getRandomQuestion());
+                questions.add(sfw.getRandomQuestion().serialize());
             }catch(Exception e){
                 e.printStackTrace();
             }
             if(questions.size() == NUM_QUESTIONS_PER_ROUND){
+                System.out.println(questions);
                 break;
             }
         }
     }
 
-    public Question getNextQuestion(User user){
-        int count = user.getQuestionCount();
-        if(user.getQuestionCount() == NUM_QUESTIONS_PER_ROUND - 1){
-            user.resetQuestionCount();
-        }else{
-            user.incrementQuestionCount();
-        }
-        return questions.get(count);
+    public String getQuestions(){
+        //returns all the questions serialized into a string
+        return String.join("---", questions);
     }
 
     public ArrayList<User> orderByScore(ArrayList<User> users){
