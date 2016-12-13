@@ -23,62 +23,67 @@ public class ClientController {
 
     ClientModel model = new ClientModel();
 
-    public ClientController() {}
+    public ClientController() {
+    }
 
     public void connectToServer(String ipAddress) { //returns whether or not connection was successful
-        new ServerConnection().execute(ipAddress);
+        new ServerConnection().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, ipAddress);
     }
 
     public void login(String username, String password){ //returns true if successful
-        new WriteToOutstream().execute(new String[]{"LOGIN", username, password});
-        new ValidateResponse().execute("LOGINSUCCESS");
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"LOGIN", username, password});
+        new ValidateResponse().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "LOGINSUCCESS");
     }
 
     public void register(String username, String password){ //returns true if successful
-        new WriteToOutstream().execute(new String[]{"REGISTER", username, password});
-        new ValidateResponse().execute("REGISTERSUCCESS");
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"REGISTER", username, password});
+        new ValidateResponse().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "REGISTERSUCCESS");
     }
 
     public void createNewGame(){
-        new WriteToOutstream().execute(new String[]{"STARTNEWGAME"});
-        new ValidateResponse().execute("NEWGAMESUCCESS");
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"STARTNEWGAME"});
+        new ValidateResponse().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "NEWGAMESUCCESS");
     }
     
     public void joinGame(String leader){
-        new WriteToOutstream().execute(new String[]{"JOINGAME", leader});
-        new ValidateResponse().execute("JOINGAMESUCCESS");
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"JOINGAME", leader});
+        new ValidateResponse().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "JOINGAMESUCCESS");
     }
 
     public void refreshGamesInList(){
-        new WriteToOutstream().execute(new String[]{"GETAVAILABLEGAMES"});
-        new RefreshGamesInList().execute();
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"GETAVAILABLEGAMES"});
+        new RefreshGamesInList().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     public void refreshPlayersInList(){
-        new WriteToOutstream().execute(new String[]{"GETPLAYERS"});
-        new RefreshPlayersInList().execute();
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"GETPLAYERS"});
+        new RefreshPlayersInList().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     public void launchGame(){
-        new WriteToOutstream().execute(new String[]{"LAUNCHGAME"});
-        new ValidateResponse().execute("LAUNCHGAMESUCCESS");
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"LAUNCHGAME"});
+        new ValidateResponse().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "LAUNCHGAMESUCCESS");
     }
 
     public void updateQuestion(Question question){
         System.out.println("Got to controller");
         try {
-            new UpdateQuestion().execute(question);
+            new UpdateQuestion().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, question);
         }catch(Exception e){
             e.printStackTrace();
         }
     }
 
     public void waitForGameLaunch(){
-        new WaitForGameLaunch().execute();
+        new WaitForGameLaunch().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     public void submitAnswer(String answer){
         GameService.processAnswer(answer);
+    }
+
+    public void sendResults(){
+        new WriteToOutstream().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"SCORE", GameService.getScore()});
     }
 
     class ServerConnection extends AsyncTask<String, Void, Boolean> {
@@ -128,7 +133,7 @@ public class ClientController {
             if(response[0].equals("NEWGAMESUCCESS")){
                 MainActivity.showNext(); //if starting a game, skip the waiting screen
             }else if(response[0].equals("LAUNCHGAMESUCCESS")){
-                new GameService().execute(); //start the game thread for leader
+                new GameService().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); //start the game thread for leader
             }
         }
     }
@@ -167,7 +172,7 @@ public class ClientController {
             if(validLaunch) {
                 MainActivity.showNext();
                 MainActivity.showNext(); //skip leader waiting screen
-                new GameService().execute();
+                new GameService().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
             MainActivity.showToast(response[1]);
         }
@@ -215,12 +220,11 @@ public class ClientController {
         }
     }
 
-    public static class UpdateQuestion extends AsyncTask<Question, Void, Boolean> {
+    public class UpdateQuestion extends AsyncTask<Question, Void, Boolean> {
 
-        public Question q;
         @Override
         protected Boolean doInBackground(Question... question) {
-            q = question[0];
+            Question q = question[0];
             if (q != null) {
                 GameService.currentQuestion = q;
                 GameService.questionCount++;
@@ -233,7 +237,8 @@ public class ClientController {
 
         protected void onPostExecute(Boolean validQuestion){
             if(validQuestion) {
-                MainActivity.replaceQuestionOnScreen(q.getCategory(), q.getQuestion(), q.getScrambledAnswer());
+                Question question = GameService.currentQuestion;
+                MainActivity.replaceQuestionOnScreen(question.getCategory(), question.getQuestion(), question.getScrambledAnswer());
             }
         }
     }

@@ -5,6 +5,8 @@ import android.os.CountDownTimer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -13,8 +15,8 @@ import java.util.concurrent.ExecutionException;
 
 public class GameService extends AsyncTask<Void, Void, Void>{
     //facilitates the game logic and keeps it out of the controller
-    final int NUM_QUESTIONS_PER_ROUND = 5;
-    private ArrayList<Question> questions = new ArrayList<Question>();
+    static final int NUM_QUESTIONS_PER_ROUND = 5;
+    private static ArrayList<Question> questions = new ArrayList<Question>();
     static ClientController ctrl = new ClientController();
     public static Question currentQuestion;
     private static CountDownTimer clock;
@@ -23,24 +25,27 @@ public class GameService extends AsyncTask<Void, Void, Void>{
 
     protected void onPreExecute(){
         try {
-            new InitQuestions().execute().get();
+            new InitQuestions().execute().get();        //wait until we have questions
         }catch(ExecutionException|InterruptedException e){
             e.printStackTrace();
         }finally {
             clock = new CountDownTimer(60000, 1000) {
                 public void onTick(long millisUntilFinished) {
-                    System.out.println("Setting timer text");
                     MainActivity.setTimerText((int) millisUntilFinished / 1000);
                     isRunning = true;
                 }
-
                 public void onFinish() {
-                    clock.cancel();
                     System.out.println("Timer finished");
                     MainActivity.setTimerText(0);
+                    clock.cancel();
+                    if(questionCount < NUM_QUESTIONS_PER_ROUND) {
+                        ctrl.updateQuestion(questions.get(questionCount));
+                    }else{
+                        ctrl.sendResults();
+                        MainActivity.showNext(); //waiting
+                        new WaitForResults().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    }
                     isRunning = false;
-                    ctrl.updateQuestion(questions.get(questionCount)); //TODO questions is not initializing
-                    questionCount++;
                 }
             }.start();
             clock.onFinish();
@@ -50,17 +55,13 @@ public class GameService extends AsyncTask<Void, Void, Void>{
     @Override
     protected Void doInBackground(Void... params) {
 
-            if(!isRunning){
+        while(true) {
+            if (!isRunning) {
                 System.out.println("Starting the clock");
                 clock.start();
+                isRunning = true;
             }
-            try{
-                System.out.println("Sleepy time");
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-        return null;
+        }
     }
 
     public class InitQuestions extends AsyncTask<Void, Void, Void>{
@@ -85,28 +86,43 @@ public class GameService extends AsyncTask<Void, Void, Void>{
             }
             return null;
         }
-        protected Void onPostExecute(){
-            try{
-                Thread.sleep(2000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
+    }
+
+    public class WaitForResults extends AsyncTask<Void, Void, Boolean>{
+
+        private List<String> response;
+        @Override
+        protected Boolean doInBackground(Void... args) {
+            try {
+                response = Arrays.asList(ctrl.getStringArrayFromObjectArray(((Object[]) ctrl.in.readObject())));
+                return response.get(0).equals("RESULTS");
+            }catch(ClassNotFoundException | IOException e){
+                return false;
             }
-            return null;
+        }
+        protected void onPostExecute(Boolean validLaunch){
+            if(validLaunch) {
+                List<String> namesAndScores = new ArrayList<String>();
+                MainActivity.showNext();
+                for(int i=1; i < response.size() - 1; i += 2){
+                    namesAndScores.add(response.get(i) + "                                                                           "
+                            + response.get(i+1));
+                }
+                MainActivity.showResults(namesAndScores);
+            }
         }
     }
+
 
     public static int calculateScore(int questionDifficulty, int numSecondsLeft){
         return numSecondsLeft * questionDifficulty;
     }
 
-    public static void stopClock(){
-        clock.onFinish();
-    }
-
     public static void processAnswer(String answer){
         if(checkAnswer(answer)){
-            stopClock();
             score += calculateScore(currentQuestion.getDifficulty(), MainActivity.getTimerText());
+            MainActivity.showToast("High five!");
+            clock.onFinish();
         }else{
             MainActivity.showToast("So close! Try again.");
         }
@@ -114,5 +130,9 @@ public class GameService extends AsyncTask<Void, Void, Void>{
 
     public static boolean checkAnswer(String playerAnswer){
         return (currentQuestion != null ? playerAnswer.toUpperCase().equals(currentQuestion.getAnswer().toUpperCase()) : false);
+    }
+
+    public static String getScore(){
+        return Integer.toString(score);
     }
 }

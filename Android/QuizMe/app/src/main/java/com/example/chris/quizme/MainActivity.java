@@ -2,9 +2,11 @@ package com.example.chris.quizme;
 
 import android.content.Context;
 
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -15,15 +17,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private final ClientController ctrl = new ClientController();
     private static ViewFlipper flipper;
     private static Context context;
-    private static ListView gameList, playersList;
+    private static ListView gameList, playersList, resultsList;
     private static String selectedGame = "";
     private static TextView timer;
-    private static TextView category, question, scrambledAnswer;
+    private static TextView category, question, scrambledAnswer, congratsMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,6 +134,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        congratsMessage = (TextView) findViewById(R.id.congrats_label);
+
+        resultsList = (ListView) findViewById(R.id.results_list);
+
+        Button playAgain = (Button) findViewById(R.id.play_again_button);
+        playAgain.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                for(int i = 0; i < 4; i++){
+                    flipper.showPrevious();     //kick back to game selection gui
+                }
+                //reset stuff
+            }
+        });
+
     }
     public static void showToast(String message) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -176,5 +195,23 @@ public class MainActivity extends AppCompatActivity {
         category.setText(categoryField);
         question.setText(questionField);
         scrambledAnswer.setText(scrambledAnswerField);
+    }
+
+    public static void showResults(List<String> namesAndScores){
+        resultsList.setAdapter(new ArrayAdapter<String>(
+                context,
+                android.R.layout.simple_list_item_1,
+                ClientController.getStringArrayFromObjectArray(namesAndScores.toArray())){
+                   @Override
+                   public View getView(int position, View convertView, ViewGroup parent) {
+                       View view = super.getView(position, convertView, parent);
+                       TextView text = (TextView) view.findViewById(android.R.id.text1);
+                       text.setTextColor(Color.BLACK);
+                       return view;
+                   }
+        }
+        );
+        congratsMessage.setText("Congratulations, " +
+                namesAndScores.get(0).trim().substring(0, namesAndScores.get(0).indexOf(" ")) + "!");
     }
 }

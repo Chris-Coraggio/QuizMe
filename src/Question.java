@@ -14,7 +14,7 @@ public class Question implements Serializable {
 
     public Question(String question, String answer, int difficulty, String category){
 
-        this.question = properCase(question);
+        this.question = clean(properCase(question));
         this.answer = clean(answer.toUpperCase());
         this.difficulty = difficulty;
         this.category = properCase(category);
@@ -40,7 +40,9 @@ public class Question implements Serializable {
     public String clean(String str){
         str = str.replace("<I>", "");
         str = str.replace("</I>", "");
-        return str;
+        str = str.replace("\\", "");
+        str = str.replaceAll("\\(.*\\)", ""); //get rid of anytign in parentheses
+        return str.trim();
     }
 
     public String getQuestion(){
@@ -60,15 +62,19 @@ public class Question implements Serializable {
     }
 
     public String getScrambledAnswer(){
-        String scrambled = "";
-        List<Character> charList = new ArrayList<Character>(this.answer.length());
-        for(char c: this.answer.toCharArray()){
-            charList.add(c);
+        String scrambledAnswer = "";
+        for(String str: this.answer.split(" ")){
+            String scrambledWord = "";
+            List<Character> charList = new ArrayList<Character>(str.length());
+            for(char c: str.toCharArray()){
+                charList.add(c);
+            }
+            while(charList.size() != 0){
+                scrambledWord += charList.remove((int)(Math.random()*charList.size()));
+            }
+            scrambledAnswer += scrambledWord + " ";
         }
-        while(charList.size() != 0){
-            scrambled += charList.remove((int)(Math.random()*charList.size()));
-        }
-        return scrambled;
+        return scrambledAnswer.trim();
     }
 
     public String toString(){
