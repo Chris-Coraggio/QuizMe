@@ -54,7 +54,9 @@ public class Testing {
             public void run(){
                 try{
                     in.readObject();
-                }catch(Exception e){}
+                }catch(ClassNotFoundException|IOException e){
+                    e.printStackTrace();
+                }
             }
         };
         boolean validResponse = validateResponse("JOINGAMESUCCESS");
@@ -75,7 +77,7 @@ public class Testing {
             if (response[1] instanceof Question) {
                 return (Question)response[1];
             }else return null;
-        }catch(Exception e){
+        }catch(ClassNotFoundException|IOException e){
             e.printStackTrace();
             return null;
         }
@@ -89,7 +91,7 @@ public class Testing {
         try {
             Object[] obj = (Object[])in.readObject();
             return Arrays.copyOf(obj, obj.length, String[].class); //for some reason casting didn't work here
-        }catch(Exception e){
+        }catch(ClassNotFoundException|IOException e){
             e.printStackTrace();
             return null;
         }
@@ -101,7 +103,7 @@ public class Testing {
             if (response[0].equals(successMessage)) {
                 return true;
             } else return false;
-        }catch(Exception e){
+        }catch(ClassNotFoundException|IOException e){
             return false;
         }
     }

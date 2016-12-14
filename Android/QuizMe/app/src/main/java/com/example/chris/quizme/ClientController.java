@@ -84,6 +84,7 @@ public class ClientController {
 
     public void sendResults(){
         new WriteToOutstream().execute(new String[]{"SCORE", GameService.getScore()});
+        GameService.questionCount = 0;
     }
 
     public void sendGameEnd(){
@@ -121,7 +122,7 @@ public class ClientController {
             try {
                 response = getStringArrayFromObjectArray((Object[]) in.readObject());
                 return response[0].equals(successMessage[0]);
-            }catch(Exception e){
+            }catch(ClassNotFoundException|IOException e){
                 e.printStackTrace();
                 return false;
             }
@@ -191,7 +192,7 @@ public class ClientController {
             try {
                 Object[] leaders = (Object[])in.readObject();
                 return getStringArrayFromObjectArray(leaders);
-            }catch(Exception e){
+            }catch(ClassNotFoundException|IOException e){
                 e.printStackTrace();
                 return null;
             }
@@ -212,7 +213,7 @@ public class ClientController {
             try {
                 Object[] players = (Object[])in.readObject();
                 return getStringArrayFromObjectArray(players);
-            }catch(Exception e){
+            }catch(ClassNotFoundException|IOException e){
                 e.printStackTrace();
                 return null;
             }

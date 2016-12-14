@@ -35,7 +35,7 @@ public class Server {
                 try{
                     usersHashmap.put(String.format("%d", numUsers++), new User(socket.accept()));
                     System.out.println("Adding User");
-                }catch(Exception e){
+                }catch(IOException e){
                     System.out.println("Failed to connect to client");
                 }
             }
@@ -128,7 +128,11 @@ public class Server {
         if (!database.containsKey(username)) {
             byte[] salt = generateSalt();
             database.put(username, new UserData(salt, hashPassword(password, salt), 0));
-            updateDatabaseFile();
+            new Thread(){           //put this in a new thread to speed up response time
+                public void run(){
+                    updateDatabaseFile();
+                }
+            }.start();
             return true;
         } else {
             return false;
@@ -232,6 +236,7 @@ public class Server {
         if(database.containsKey(username)){
             return new String[]{"REGISTERERROR", username + " is already taken."};
         }else{
+            System.out.println("Hashing password and adding to database");
             if(addUserToDatabase(username, unhashedPassword)){
                 return new String[]{"REGISTERSUCCESS", username + " registered successfully!"};
             }else{

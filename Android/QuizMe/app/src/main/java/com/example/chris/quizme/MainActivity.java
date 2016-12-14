@@ -17,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -70,11 +69,8 @@ public class MainActivity extends AppCompatActivity {
                 //do this when register button is clicked
                 String username = ((EditText) findViewById(R.id.username_field)).getText().toString();
                 String password = ((EditText) findViewById(R.id.password_field)).getText().toString();
-                try{
-                    ctrl.register(username, password);
-                }catch(Exception e){
-                    showToast("Registration failed. Please try again.");
-                }
+                ctrl.register(username, password);
+
         }});
 
         gameList = (ListView) findViewById(R.id.games_list);
