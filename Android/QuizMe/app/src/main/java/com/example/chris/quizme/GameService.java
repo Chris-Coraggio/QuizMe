@@ -105,7 +105,7 @@ public class GameService extends AsyncTask<Void, Void, Void>{
                 List<String> namesAndScores = new ArrayList<String>();
                 MainActivity.showNext();
                 for(int i=1; i < response.size() - 1; i += 2){
-                    namesAndScores.add(response.get(i) + "                                                                           "
+                    namesAndScores.add(response.get(i) + "                                                                    "
                             + response.get(i+1));
                 }
                 MainActivity.showResults(namesAndScores);

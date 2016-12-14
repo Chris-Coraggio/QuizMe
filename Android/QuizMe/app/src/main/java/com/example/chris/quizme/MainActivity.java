@@ -141,10 +141,10 @@ public class MainActivity extends AppCompatActivity {
         Button playAgain = (Button) findViewById(R.id.play_again_button);
         playAgain.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
-                for(int i = 0; i < 4; i++){
+                for(int i = 0; i < 5; i++){
                     flipper.showPrevious();     //kick back to game selection gui
                 }
-                //reset stuff
+                ctrl.sendGameEnd();
             }
         });
 
@@ -161,7 +161,14 @@ public class MainActivity extends AppCompatActivity {
         gameList.setAdapter(new ArrayAdapter<String>(
                 context,
                 android.R.layout.simple_list_item_single_choice,
-                leaders)
+                leaders){
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                                    View view = super.getView(position, convertView, parent);
+                                    TextView text = (TextView) view.findViewById(android.R.id.text1);
+                                    text.setTextColor(Color.BLACK);
+                                    return view;
+                                }
+        }
         );
         gameList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         gameList.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -179,7 +186,14 @@ public class MainActivity extends AppCompatActivity {
         playersList.setAdapter(new ArrayAdapter<String>(
                 context,
                 android.R.layout.simple_list_item_1,
-                players)
+                players){
+                                   public View getView(int position, View convertView, ViewGroup parent) {
+                                       View view = super.getView(position, convertView, parent);
+                                       TextView text = (TextView) view.findViewById(android.R.id.text1);
+                                       text.setTextColor(Color.BLACK);
+                                       return view;
+                                   }
+        }
         );
     }
 

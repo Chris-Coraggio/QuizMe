@@ -210,6 +210,8 @@ public class Server {
                 user.updateScore(Integer.parseInt((String)clientMessage[1]));
                 findGameByUser(user).checkForResults();
                 break;
+            case("GAMEOVER"):
+                games.remove(findGameByUser(user).getLeader().getUsername());
             default:
                 System.out.println("Message sent with invalid first keyword");
         }
