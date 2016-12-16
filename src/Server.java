@@ -208,7 +208,7 @@ public class Server {
                 sendToClient(games.get(user.getUsername()).getParticipantUsernames(), user);
                 break;
             case("GETQUESTIONS"):
-                sendToClient(new String[]{"QUESTIONS", findGameByUser(user).getQuestions()}, user);
+                sendToClient(findGameByUser(user).getQuestions(), user);
                 break;
             case("SCORE"):
                 user.updateScore(Integer.parseInt((String)clientMessage[1]));

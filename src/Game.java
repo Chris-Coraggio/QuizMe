@@ -8,7 +8,7 @@ import java.util.Comparator;
 public class Game extends Thread {
 
     private ArrayList<User> participants = new ArrayList<User>();
-    private ArrayList<String> questions;
+    private ArrayList<Question> questions;
     final int NUM_QUESTIONS_PER_ROUND = 5;
 
     public Game(){}
@@ -43,13 +43,13 @@ public class Game extends Thread {
     }
 
     public void initQuestions(){
-        questions = new ArrayList<String>();
+        questions = new ArrayList<Question>();
         ScrapeFromWeb sfw = new ScrapeFromWeb();
 
         //ensure we have the correct number of questions per round
         while(true){
             try {
-                questions.add(sfw.getRandomQuestion().serialize());
+                questions.add(sfw.getRandomQuestion());
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -60,9 +60,14 @@ public class Game extends Thread {
         }
     }
 
-    public String getQuestions(){
-        //returns all the questions serialized into a string
-        return String.join("---", questions);
+    public Question[] getQuestions(){
+        //return (Question [])questions.toArray();
+        //this does not work (ClassCastException), so trying another way...
+        Question [] toReturn = new Question[questions.size()];
+        for(int i=0; i < toReturn.length; i++){
+            toReturn[i] = questions.get(i);
+        }
+        return toReturn;
     }
 
     public ArrayList<User> orderByScore(ArrayList<User> users){

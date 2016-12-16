@@ -74,16 +74,13 @@ public class GameService extends AsyncTask<Void, Void, Void>{
             }
         }
         protected Void doInBackground(Void... params){
-            String[] response = new String[0];
+            Question[] response = new Question[0];
             try {
-                response = ClientController.getStringArrayFromObjectArray((Object[]) ctrl.in.readObject());
+                response = getQuestionArrayFromObjectArray((Object[]) ctrl.in.readObject()); //this is the line that throws a ClassNotFoundException
             } catch (ClassNotFoundException|IOException e) {
                 e.printStackTrace();
             }
-            response = response[1].split("---");
-            for(int i = 0; i < response.length; i+=4) {
-                questions.add(new Question(response[i], response[i+1], Integer.parseInt(response[i+2]), response[i+3]));
-            }
+            questions = new ArrayList<Question>(Arrays.asList(response));
             return null;
         }
     }
@@ -134,5 +131,9 @@ public class GameService extends AsyncTask<Void, Void, Void>{
 
     public static String getScore(){
         return Integer.toString(score);
+    }
+
+    public static Question[] getQuestionArrayFromObjectArray(Object[] objects){
+        return Arrays.copyOf(objects, objects.length, Question[].class);
     }
 }
